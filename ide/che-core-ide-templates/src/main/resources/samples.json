@@ -876,5 +876,50 @@
 	  "javaee",
 	  "jaxrs"
     ]
+  },
+  {
+    "name": "express",
+    "displayName": "express",
+    "path": "/express",
+    "description": "An application skeleton created by the express-generator tool. Execute the 'run first' command to create the sample project.",
+    "projectType": "node-js",
+    "mixins": [],
+    "attributes": {
+      "language": [
+        "node.JS"
+      ]
+    },
+    "modules": [],
+    "problems": [],
+    "source": {
+      "type": "git",
+      "location": "https://github.com/bitnami/bitnami-docker-che-blank-sample",
+      "parameters": {
+        "keepVcs": "false"
+      }
+    },
+    "commands": [
+      {
+        "name": "run first",
+        "type": "custom",
+        "commandLine": "source /opt/bitnami/stacksmith-utils.sh && print_welcome_page && cd ${current.project.path} && npm install express@4.13.4 && express -f . && cp -rn /bitnami/mongodb/conf ${current.project.path} && npm install mongodb@2.1.18 --save && npm install && counter=0; until nc -z localhost 27017; do counter=$((counter+1)); if [ $counter == 10 ]; then echo \"Error: Couldn't connect to MongoDB.\"; exit 1; fi; echo \"Trying to connect to MongoDB at localhost. Attempt $counter.\"; sleep 5; done; echo \"Connected to MongoDB database\" && npm start",
+        "attributes": {
+          "previewUrl": "http://${server.port.3000}"
+        }
+      },
+      {
+        "name": "run",
+        "type": "custom",
+        "commandLine": "source /opt/bitnami/stacksmith-utils.sh && print_welcome_page && cd ${current.project.path} && npm start",
+        "attributes": {
+          "previewUrl": "http://${server.port.3000}"
+        }
+      }
+    ],
+    "links": [],
+    "category": "Samples",
+    "tags": [
+      "Express"
+    ]
   }
 ]

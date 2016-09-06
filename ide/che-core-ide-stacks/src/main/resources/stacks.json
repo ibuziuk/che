@@ -1588,5 +1588,73 @@
         ]
       }
     ]
+  },
+  {
+    "id": "bitnami-express",
+    "creator": "Bitnami",
+    "name": "Bitnami Express",
+    "description": "Bitnami Development Stack with Node.js. and Express",
+    "scope": "advanced",
+    "tags": [
+      "Ubuntu",
+      "Node.JS",
+      "NPM",
+      "Express"
+    ],
+    "components": [
+      {
+        "name": "Node.JS",
+        "version": "6.4.0"
+      },
+      {
+        "name": "NPM",
+        "version": "---"
+      },
+      {
+        "name": "Express",
+        "version": "4.14.0"
+      }
+    ],
+    "source": {
+      "type": "image",
+      "origin": "bitnami/express:che-4.14.0-r0"
+    },
+    "workspaceConfig": {
+      "environments": {
+        "default": {
+          "machines": {
+            "dev-machine": {
+              "agents": [
+                "ws-agent"
+              ],
+              "servers": {},
+              "attributes" : {
+                "memoryLimitBytes": "2147483648"
+              }
+            }
+          },
+          "recipe": {
+            "location": "bitnami/express:che-4.14.0-r0",
+            "type": "dockerimage"
+          }
+        }
+      },
+      "name": "default",
+      "defaultEnv": "default",
+      "description": null,
+      "commands": []
+    },
+    "acl": [
+      {
+        "user": "*",
+        "actions": [
+          "search"
+        ]
+      }
+    ],
+    "stackIcon": {
+      "name": "type-bitnami.svg",
+      "mediaType": "image/svg+xml"
+    }
   }
 ]
