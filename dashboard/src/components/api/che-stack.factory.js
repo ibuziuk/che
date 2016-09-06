@@ -14,6 +14,7 @@
  * This class is handling the stacks retrieval
  * It sets to the array of stacks
  * @author Florent Benoit
+ * @author Ann Shumilova
  */
 export class CheStack {
 
@@ -21,7 +22,7 @@ export class CheStack {
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor ($resource) {
+  constructor($resource) {
 
     // keep resource
     this.$resource = $resource;
@@ -33,10 +34,11 @@ export class CheStack {
     this.stacks = [];
 
     // remote call
-    this.remoteStackAPI = this.$resource('/api/stack',{}, {
-      getStacks: {method: 'GET', url: '/api/stack', isArray: true}});
-
-
+    this.remoteStackAPI = this.$resource('/api/stack', {}, {
+      getStacks: {method: 'GET', url: '/api/stack', isArray: true},
+      createStack: {method: 'POST', url: '/api/stack'},
+      deleteStack: {method: 'DELETE', url: '/api/stack/:stackId'}
+    });
   }
 
 
@@ -81,5 +83,23 @@ export class CheStack {
     return this.stacksById[id];
   }
 
+  /**
+   * Creates new stack.
+   * @param stack data for new stack
+   * @returns {$promise|*|T.$promise}
+   */
+  createStack(stack) {
+    return this.remoteStackAPI.createStack({}, stack).$promise;
+  }
 
+  /**
+   * Delete pointed stack.
+   * @param stackId stack's id
+   * @returns {$promise|*|T.$promise}
+   */
+  deleteStack(stackId) {
+    return this.remoteStackAPI.deleteStack({stackId: stackId}).$promise;
+  }
 }
+
+

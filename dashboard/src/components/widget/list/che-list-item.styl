@@ -5,7 +5,7 @@
 .che-list-item:hover
   background-color $hover-on-list-color
 
-.che-list-item
+.che-list .che-list-item:not(:last-of-type)
   border-bottom 1px solid $list-separator-color
 
 .che-list-item-content
@@ -95,3 +95,6 @@
     font-size 14px
     line-height 60px
     color $label-info-color
+
+.che-list-item-secondary
+  color $list-action-color
