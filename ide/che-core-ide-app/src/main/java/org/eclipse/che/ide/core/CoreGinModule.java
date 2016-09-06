@@ -62,6 +62,7 @@ import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.machine.MachineServiceClientImpl;
 import org.eclipse.che.ide.api.machine.RecipeServiceClient;
 import org.eclipse.che.ide.api.machine.RecipeServiceClientImpl;
+import org.eclipse.che.ide.ui.loaders.PopupLoaderFactory;
 import org.eclipse.che.ide.ui.multisplitpanel.SubPanel;
 import org.eclipse.che.ide.ui.multisplitpanel.SubPanelFactory;
 import org.eclipse.che.ide.ui.multisplitpanel.tab.Tab;
@@ -146,7 +147,6 @@ import org.eclipse.che.ide.jsonrpc.impl.WebSocketJsonRpcResponseDispatcher;
 import org.eclipse.che.ide.jsonrpc.impl.WebSocketJsonRpcResponseTransmitter;
 import org.eclipse.che.ide.keybinding.KeyBindingManager;
 import org.eclipse.che.ide.machine.CommandPropertyValueProviderRegistryImpl;
-import org.eclipse.che.ide.machine.macro.ServerMacroProvider;
 import org.eclipse.che.ide.menu.MainMenuView;
 import org.eclipse.che.ide.menu.MainMenuViewImpl;
 import org.eclipse.che.ide.menu.StatusPanelGroupView;
@@ -239,8 +239,6 @@ import org.eclipse.che.ide.ui.dialogs.message.MessageDialogViewImpl;
 import org.eclipse.che.ide.ui.dropdown.DropDownListFactory;
 import org.eclipse.che.ide.ui.dropdown.DropDownWidget;
 import org.eclipse.che.ide.ui.dropdown.DropDownWidgetImpl;
-import org.eclipse.che.ide.ui.loaders.initialization.LoaderView;
-import org.eclipse.che.ide.ui.loaders.initialization.LoaderViewImpl;
 import org.eclipse.che.ide.ui.loaders.request.LoaderFactory;
 import org.eclipse.che.ide.ui.multisplitpanel.panel.SubPanelPresenter;
 import org.eclipse.che.ide.ui.multisplitpanel.panel.SubPanelView;
@@ -306,7 +304,7 @@ public class CoreGinModule extends AbstractGinModule {
         GinMapBinder.newMapBinder(binder(), String.class, FqnProvider.class);
 
         install(new GinFactoryModuleBuilder().implement(WorkBenchPartController.class,
-                                                        WorkBenchPartControllerImpl.class).build(WorkBenchControllerFactory.class));
+                WorkBenchPartControllerImpl.class).build(WorkBenchControllerFactory.class));
         // generic bindings
         bind(EventBus.class).to(SimpleEventBus.class).in(Singleton.class);
         bind(Resources.class).in(Singleton.class);
@@ -320,6 +318,8 @@ public class CoreGinModule extends AbstractGinModule {
         install(new GinFactoryModuleBuilder().build(ResourceNode.NodeFactory.class));
 
         bind(AppContext.class).to(AppContextImpl.class);
+
+        install(new GinFactoryModuleBuilder().build(PopupLoaderFactory.class));
 
         install(new GinFactoryModuleBuilder().build(LoaderFactory.class));
         install(new GinFactoryModuleBuilder().implement(PartStackView.class, PartStackViewImpl.class).build(PartStackViewFactory.class));
@@ -566,8 +566,6 @@ public class CoreGinModule extends AbstractGinModule {
         bind(AppearanceView.class).to(AppearanceViewImpl.class).in(Singleton.class);
         bind(FindActionView.class).to(FindActionViewImpl.class).in(Singleton.class);
 
-        bind(LoaderView.class).to(LoaderViewImpl.class).in(Singleton.class);
-
         bind(HotKeysDialogView.class).to(HotKeysDialogViewImpl.class).in(Singleton.class);
 
         bind(RecentFileList.class).to(RecentFileStore.class).in(Singleton.class);
@@ -609,4 +607,5 @@ public class CoreGinModule extends AbstractGinModule {
     protected PartStackEventHandler providePartStackEventHandler(FocusManager partAgentPresenter) {
         return partAgentPresenter.getPartStackHandler();
     }
+
 }

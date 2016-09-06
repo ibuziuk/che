@@ -45,8 +45,7 @@ import org.eclipse.che.ide.api.workspace.event.WorkspaceStartedEvent;
 import org.eclipse.che.ide.api.workspace.event.WorkspaceStartingEvent;
 import org.eclipse.che.ide.api.workspace.event.WorkspaceStoppedEvent;
 import org.eclipse.che.ide.rest.DtoUnmarshallerFactory;
-import org.eclipse.che.ide.ui.loaders.initialization.InitialLoadingInfo;
-import org.eclipse.che.ide.ui.loaders.initialization.OperationInfo;
+import org.eclipse.che.ide.ui.loaders.LoaderPresenter;
 import org.eclipse.che.ide.ui.loaders.request.LoaderFactory;
 import org.eclipse.che.ide.ui.loaders.request.MessageLoader;
 import org.eclipse.che.ide.util.loging.Log;
@@ -67,9 +66,6 @@ import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMod
 import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMode.FLOAT_MODE;
 import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMode.NOT_EMERGE_MODE;
 import static org.eclipse.che.ide.api.notification.StatusNotification.Status.FAIL;
-import static org.eclipse.che.ide.ui.loaders.initialization.InitialLoadingInfo.Operations.WORKSPACE_BOOTING;
-import static org.eclipse.che.ide.ui.loaders.initialization.OperationInfo.Status.ERROR;
-import static org.eclipse.che.ide.ui.loaders.initialization.OperationInfo.Status.IN_PROGRESS;
 
 /**
  * <ul> Notifies about the events which occur in the workspace:
@@ -83,13 +79,13 @@ import static org.eclipse.che.ide.ui.loaders.initialization.OperationInfo.Status
  */
 @Singleton
 public class WorkspaceEventsNotifier {
+
     private final static int SKIP_COUNT = 0;
     private final static int MAX_COUNT  = 10;
 
     private final EventBus                            eventBus;
     private final CoreLocalizationConstant            locale;
     private final NotificationManager                 notificationManager;
-    private final InitialLoadingInfo                  initialLoadingInfo;
     private final DialogFactory                       dialogFactory;
     private final DtoUnmarshallerFactory              dtoUnmarshallerFactory;
     private final Provider<MachineManager>            machineManagerProvider;
@@ -98,6 +94,7 @@ public class WorkspaceEventsNotifier {
     private final WorkspaceSnapshotCreator            snapshotCreator;
     private final WorkspaceServiceClient              workspaceServiceClient;
     private final StartWorkspacePresenter             startWorkspacePresenter;
+    private final LoaderPresenter                     loader;
 
     private DefaultWorkspaceComponent      workspaceComponent;
     private Callback<Component, Exception> callback;
@@ -122,7 +119,6 @@ public class WorkspaceEventsNotifier {
                             final CoreLocalizationConstant locale,
                             final DialogFactory dialogFactory,
                             final DtoUnmarshallerFactory dtoUnmarshallerFactory,
-                            final InitialLoadingInfo initialLoadingInfo,
                             final NotificationManager notificationManager,
                             final MessageBusProvider messageBusProvider,
                             final Provider<MachineManager> machineManagerProvider,
@@ -130,12 +126,12 @@ public class WorkspaceEventsNotifier {
                             final LoaderFactory loaderFactory,
                             final WorkspaceServiceClient workspaceServiceClient,
                             final StartWorkspacePresenter startWorkspacePresenter,
-                            final Provider<DefaultWorkspaceComponent> wsComponentProvider) {
+                            final Provider<DefaultWorkspaceComponent> wsComponentProvider,
+                            final LoaderPresenter loader) {
         this.eventBus = eventBus;
         this.locale = locale;
         this.messageBusProvider = messageBusProvider;
         this.snapshotCreator = snapshotCreator;
-        this.initialLoadingInfo = initialLoadingInfo;
         this.notificationManager = notificationManager;
         this.dialogFactory = dialogFactory;
         this.dtoUnmarshallerFactory = dtoUnmarshallerFactory;
@@ -143,6 +139,7 @@ public class WorkspaceEventsNotifier {
         this.workspaceServiceClient = workspaceServiceClient;
         this.startWorkspacePresenter = startWorkspacePresenter;
         this.wsComponentProvider = wsComponentProvider;
+        this.loader = loader;
 
         this.snapshotLoader = loaderFactory.newLoader(locale.createSnapshotProgress());
     }
@@ -186,7 +183,7 @@ public class WorkspaceEventsNotifier {
                         workspaceComponent.setCurrentWorkspace(workspace);
                         machineManagerProvider.get();
 
-                        initialLoadingInfo.setOperationStatus(WORKSPACE_BOOTING.getValue(), IN_PROGRESS);
+                		loader.setProgress(LoaderPresenter.Phase.STARTING_WORKSPACE_RUNTIME, LoaderPresenter.Status.LOADING);
                         eventBus.fireEvent(new WorkspaceStartingEvent(workspace));
                     }
                 });
@@ -200,7 +197,7 @@ public class WorkspaceEventsNotifier {
             public void apply(WorkspaceDto workspace) throws OperationException {
                 workspaceComponent.setCurrentWorkspace(workspace);
                 notificationManager.notify(locale.startedWs(), StatusNotification.Status.SUCCESS, FLOAT_MODE);
-                initialLoadingInfo.setOperationStatus(WORKSPACE_BOOTING.getValue(), OperationInfo.Status.SUCCESS);
+                loader.setProgress(LoaderPresenter.Phase.STARTING_WORKSPACE_RUNTIME, LoaderPresenter.Status.SUCCESS);
                 eventBus.fireEvent(new WorkspaceStartedEvent(workspace));
             }
         });
@@ -338,34 +335,36 @@ public class WorkspaceEventsNotifier {
                 case STARTING:
                     onWorkspaceStarting(workspaceId);
                     break;
+
                 case RUNNING:
                     onWorkspaceStarted(workspaceId);
                     break;
+
                 case ERROR:
                     unSubscribeHandlers();
-
                     notificationManager.notify(locale.workspaceStartFailed(), FAIL, FLOAT_MODE);
-                    initialLoadingInfo.setOperationStatus(WORKSPACE_BOOTING.getValue(), ERROR);
-
+                    loader.setProgress(LoaderPresenter.Phase.STARTING_WORKSPACE_RUNTIME, LoaderPresenter.Status.ERROR);
                     final String workspaceName = workspace.getConfig().getName();
                     final String error = statusEvent.getError();
                     workspaceServiceClient.getWorkspaces(SKIP_COUNT, MAX_COUNT).then(showErrorDialog(workspaceName, error));
-
                     eventBus.fireEvent(new WorkspaceStoppedEvent(workspace));
                     break;
+
                 case STOPPED:
                     unSubscribeHandlers();
-
                     notificationManager.notify(locale.extServerStopped(), StatusNotification.Status.SUCCESS, FLOAT_MODE);
                     eventBus.fireEvent(new WorkspaceStoppedEvent(workspace));
                     break;
+
                 case SNAPSHOT_CREATING:
                     snapshotLoader.show();
                     break;
+
                 case SNAPSHOT_CREATED:
                     snapshotLoader.hide();
                     snapshotCreator.successfullyCreated();
                     break;
+
                 case SNAPSHOT_CREATION_ERROR:
                     snapshotLoader.hide();
                     snapshotCreator.creationError("Snapshot creation error: " + statusEvent.getError());
@@ -432,4 +431,5 @@ public class WorkspaceEventsNotifier {
             Log.error(WorkspaceEventsNotifier.class, exception);
         }
     }
+
 }

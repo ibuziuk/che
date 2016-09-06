@@ -43,8 +43,7 @@ import org.eclipse.che.ide.api.workspace.event.WorkspaceStartingEvent;
 import org.eclipse.che.ide.api.workspace.event.WorkspaceStoppedEvent;
 import org.eclipse.che.ide.rest.DtoUnmarshallerFactory;
 import org.eclipse.che.ide.rest.Unmarshallable;
-import org.eclipse.che.ide.ui.loaders.initialization.InitialLoadingInfo;
-import org.eclipse.che.ide.ui.loaders.initialization.OperationInfo;
+import org.eclipse.che.ide.ui.loaders.LoaderPresenter;
 import org.eclipse.che.ide.ui.loaders.request.LoaderFactory;
 import org.eclipse.che.ide.ui.loaders.request.MessageLoader;
 import org.eclipse.che.ide.websocket.Message;
@@ -75,9 +74,6 @@ import static org.eclipse.che.api.workspace.shared.dto.event.WorkspaceStatusEven
 import static org.eclipse.che.api.workspace.shared.dto.event.WorkspaceStatusEvent.EventType.STARTING;
 import static org.eclipse.che.api.workspace.shared.dto.event.WorkspaceStatusEvent.EventType.STOPPED;
 import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMode.FLOAT_MODE;
-import static org.eclipse.che.ide.ui.loaders.initialization.InitialLoadingInfo.Operations.WORKSPACE_BOOTING;
-import static org.eclipse.che.ide.ui.loaders.initialization.OperationInfo.Status.IN_PROGRESS;
-import static org.eclipse.che.ide.ui.loaders.initialization.OperationInfo.Status.SUCCESS;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -106,8 +102,6 @@ public class WorkspaceEventsNotifierTest {
     @Mock
     private NotificationManager                 notificationManager;
     @Mock
-    private InitialLoadingInfo                  initialLoadingInfo;
-    @Mock
     private DialogFactory                       dialogFactory;
     @Mock
     private DtoUnmarshallerFactory              dtoUnmarshallerFactory;
@@ -123,7 +117,6 @@ public class WorkspaceEventsNotifierTest {
     private WorkspaceServiceClient              workspaceServiceClient;
     @Mock
     private StartWorkspacePresenter             startWorkspacePresenter;
-
 
     //additional mocks
     @Mock
@@ -141,7 +134,7 @@ public class WorkspaceEventsNotifierTest {
     @Mock
     private WorkspaceStatusEvent                 workspaceStatusEvent;
     @Mock
-    private MachineStatusEvent    machineStatusEvent;
+    private MachineStatusEvent                   machineStatusEvent;
     @Mock
     private Message                              message;
     @Mock
@@ -156,6 +149,8 @@ public class WorkspaceEventsNotifierTest {
     private Promise<WorkspaceDto>                workspacePromise;
     @Mock
     private Promise<List<WorkspaceDto>>          workspacesPromise;
+    @Mock
+    private LoaderPresenter                      loader;
 
     @Captor
     private ArgumentCaptor<Operation<WorkspaceDto>>       workspaceCaptor;
@@ -167,10 +162,10 @@ public class WorkspaceEventsNotifierTest {
     @Before
     public void setUp() {
         when(loaderFactory.newLoader(anyString())).thenReturn(snapshotLoader);
-        workspaceEventsNotifier = new WorkspaceEventsNotifier(eventBus, locale, dialogFactory, dtoUnmarshallerFactory, initialLoadingInfo,
+        workspaceEventsNotifier = new WorkspaceEventsNotifier(eventBus, locale, dialogFactory, dtoUnmarshallerFactory,
                                                               notificationManager, messageBusProvider, machineManagerProvider,
                                                               snapshotCreator, loaderFactory, workspaceServiceClient,
-                                                              startWorkspacePresenter, wsComponentProvider);
+                                                              startWorkspacePresenter, wsComponentProvider, loader);
         when(wsComponentProvider.get()).thenReturn(workspaceComponent);
         when(workspace.getId()).thenReturn(WORKSPACE_ID);
         when(workspaceStatusEvent.getWorkspaceId()).thenReturn(WORKSPACE_ID);
@@ -237,7 +232,9 @@ public class WorkspaceEventsNotifierTest {
         verify(workspaceServiceClient).getWorkspace(WORKSPACE_ID);
         verify(workspaceComponent).setCurrentWorkspace(workspace);
         verify(machineManagerProvider).get();
-        verify(initialLoadingInfo).setOperationStatus(eq(WORKSPACE_BOOTING.getValue()), eq(IN_PROGRESS));
+
+        verify(loader).setProgress(eq(LoaderPresenter.Phase.STARTING_WORKSPACE_RUNTIME), eq(LoaderPresenter.Status.LOADING));
+
         verify(eventBus).fireEvent(Matchers.<WorkspaceStartingEvent>anyObject());
     }
 
@@ -253,7 +250,9 @@ public class WorkspaceEventsNotifierTest {
 
         verify(workspaceServiceClient).getWorkspace(WORKSPACE_ID);
         verify(workspaceComponent).setCurrentWorkspace(workspace);
-        verify(initialLoadingInfo).setOperationStatus(eq(WORKSPACE_BOOTING.getValue()), eq(SUCCESS));
+
+        verify(loader).setProgress(eq(LoaderPresenter.Phase.STARTING_WORKSPACE_RUNTIME), eq(LoaderPresenter.Status.SUCCESS));
+
         verify(eventBus).fireEvent(Matchers.<WorkspaceStartedEvent>anyObject());
         verify(notificationManager).notify(anyString(), eq(StatusNotification.Status.SUCCESS), eq(FLOAT_MODE));
     }
@@ -277,7 +276,9 @@ public class WorkspaceEventsNotifierTest {
 
         verify(messageBus, times(4)).unsubscribe(anyString(), (MessageHandler)anyObject());
         verify(notificationManager).notify(anyString(), eq(StatusNotification.Status.FAIL), eq(FLOAT_MODE));
-        verify(initialLoadingInfo).setOperationStatus(eq(WORKSPACE_BOOTING.getValue()), eq(OperationInfo.Status.ERROR));
+
+        verify(loader).setProgress(eq(LoaderPresenter.Phase.STARTING_WORKSPACE_RUNTIME), eq(LoaderPresenter.Status.ERROR));
+
         verify(eventBus).fireEvent(Matchers.<WorkspaceStoppedEvent>anyObject());
         verify(errorDialog).show();
     }
