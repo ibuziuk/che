@@ -54,7 +54,7 @@ public class PopupLoaderImpl extends Composite implements PopupLoader {
         RootPanel.get().add(this);
 
         // Start animation timer
-        playTimer.scheduleRepeating(750);
+        playTimer.scheduleRepeating(1000);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class PopupLoaderImpl extends Composite implements PopupLoader {
         @Override
         public void run() {
             titleSuffix += ".";
-            if (titleSuffix.length() > 4) {
+            if (titleSuffix.length() > 3) {
                 titleSuffix = ".";
             }
 
