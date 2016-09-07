@@ -52,12 +52,15 @@ public class FocusManager {
 
         this.partStackHandler = new PartStackEventHandler() {
             @Override
-            public void onRequestFocus(PartStack partStack) {
-                if (partStack == null || partStack.getActivePart() == null) {
+            public void onRequestFocus(PartStack currentPartStack) {
+                if (currentPartStack == null) {
                     return;
                 }
 
-                if (partStack == activePartStack && partStack.getActivePart() == activePart) {
+                PartPresenter currentActivePart = currentPartStack.getActivePart();
+                if (currentPartStack == activePartStack &&
+                    currentActivePart != null &&
+                    currentActivePart == activePart) {
                     return;
                 }
 
@@ -72,8 +75,8 @@ public class FocusManager {
                 }
 
                 /** remember active part stack and part */
-                activePartStack = partStack;
-                activePart = partStack.getActivePart();
+                activePart = currentActivePart;
+                activePartStack = currentPartStack;
 
                 /** focus part stack */
                 activePartStack.setFocus(true);
@@ -93,12 +96,10 @@ public class FocusManager {
                 Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
                     @Override
                     public void execute() {
-                        eventBus.fireEvent(new ActivePartChangedEvent(activePart));
+                        eventBus.fireEvent(new ActivePartChangedEvent(activePart, activePartStack));
                     }
                 });
-
             }
         };
     }
-
 }

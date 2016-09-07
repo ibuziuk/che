@@ -10,8 +10,10 @@
  *******************************************************************************/
 package org.eclipse.che.ide.api.event;
 
-import org.eclipse.che.ide.api.parts.PartPresenter;
 import com.google.gwt.event.shared.GwtEvent;
+
+import org.eclipse.che.ide.api.parts.PartPresenter;
+import org.eclipse.che.ide.api.parts.PartStack;
 
 /**
  * Event that notifies of changing active PartPresenter
@@ -22,9 +24,11 @@ public class ActivePartChangedEvent extends GwtEvent<ActivePartChangedHandler> {
     public static Type<ActivePartChangedHandler> TYPE = new Type<>();
 
     private final PartPresenter activePart;
+    private final PartStack     activePartStack;
 
-    public ActivePartChangedEvent(PartPresenter activePart) {
+    public ActivePartChangedEvent(PartPresenter activePart, PartStack activePartStack) {
         this.activePart = activePart;
+        this.activePartStack = activePartStack;
     }
 
     @Override
@@ -35,6 +39,11 @@ public class ActivePartChangedEvent extends GwtEvent<ActivePartChangedHandler> {
     /** @return instance of Active Part */
     public PartPresenter getActivePart() {
         return activePart;
+    }
+
+    /** @return instance of Active Part Stack */
+    public PartStack getActivePartStack() {
+        return activePartStack;
     }
 
     @Override

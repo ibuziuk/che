@@ -12,11 +12,13 @@ package org.eclipse.che.ide.part.editor.multipart;
 
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.web.bindery.event.shared.EventBus;
 
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.ide.api.constraints.Constraints;
+import org.eclipse.che.ide.api.editor.EditorAgent;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
 import org.eclipse.che.ide.api.event.ActivePartChangedEvent;
 import org.eclipse.che.ide.api.event.ActivePartChangedHandler;
@@ -25,6 +27,9 @@ import org.eclipse.che.ide.api.parts.EditorPartStack;
 import org.eclipse.che.ide.api.parts.EditorTab;
 import org.eclipse.che.ide.api.parts.PartPresenter;
 import org.eclipse.che.ide.part.editor.EditorPartStackFactory;
+import org.eclipse.che.ide.part.editor.event.ClosePaneEvent;
+import org.eclipse.che.ide.part.editor.event.ClosePaneEvent.ClosePaneHandler;
+import org.eclipse.che.ide.util.loging.Log;
 
 import javax.validation.constraints.NotNull;
 import java.util.LinkedList;
@@ -35,22 +40,29 @@ import java.util.LinkedList;
  * @author Roman Nikitenko
  */
 @Singleton
-public class EditorMultiPartStackPresenter implements EditorMultiPartStack, ActivePartChangedHandler {
-    private PartPresenter activeEditor;
+public class EditorMultiPartStackPresenter implements EditorMultiPartStack,
+                                                      ActivePartChangedHandler,
+                                                      ClosePaneHandler {
+    private PartPresenter   activeEditor;
+    private EditorPartStack activeEditorPartStack;
 
     private final EditorPartStackFactory      editorPartStackFactory;
+    private final Provider<EditorAgent>       editorAgentProvider;
     private final EditorMultiPartStackView    view;
     private final LinkedList<EditorPartStack> partStackPresenters;
 
     @Inject
     public EditorMultiPartStackPresenter(EventBus eventBus,
+                                         Provider<EditorAgent> editorAgentProvider,
                                          EditorMultiPartStackView view,
                                          EditorPartStackFactory editorPartStackFactory) {
+        this.editorAgentProvider = editorAgentProvider;
         this.view = view;
         this.editorPartStackFactory = editorPartStackFactory;
         this.partStackPresenters = new LinkedList<>();
 
         eventBus.addHandler(ActivePartChangedEvent.TYPE, this);
+        eventBus.addHandler(ClosePaneEvent.getType(), this);
     }
 
 
@@ -72,13 +84,14 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack, Acti
     /** {@inheritDoc} */
     @Override
     public void addPart(@NotNull PartPresenter part) {
-        EditorPartStack editorPartStack = getPartStackByPart(activeEditor);
-        if (editorPartStack != null) {
-            //open the part in the same editorPartStack as the activeEditor
-            editorPartStack.addPart(part);
+        if (activeEditorPartStack != null) {
+            Log.error(getClass(), "activeEditorPartStack != null");
+            //open the part in the active editorPartStack
+            activeEditorPartStack.addPart(part);
             return;
         }
 
+        Log.error(getClass(), "open the part in the new editorPartStack");
         //open the part in the new editorPartStack
         addEditorPartStack(part, null, null);
     }
@@ -108,9 +121,8 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack, Acti
 
     @Override
     public void setFocus(boolean focused) {
-        EditorPartStack editorPartStack = getPartStackByPart(activeEditor);
-        if (editorPartStack != null) {
-            editorPartStack.setFocus(focused);
+        if (activeEditorPartStack != null) {
+            activeEditorPartStack.setFocus(focused);
         }
     }
 
@@ -126,6 +138,7 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack, Acti
         activeEditor = part;
         EditorPartStack editorPartStack = getPartStackByPart(part);
         if (editorPartStack != null) {
+            activeEditorPartStack = editorPartStack;
             editorPartStack.setActivePart(part);
         }
     }
@@ -141,15 +154,18 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack, Acti
     /** {@inheritDoc} */
     @Override
     public void removePart(PartPresenter part) {
+        Log.error(getClass(), "=== remove part");
         EditorPartStack editorPartStack = getPartStackByPart(part);
         if (editorPartStack == null) {
             return;
         }
 
         editorPartStack.removePart(part);
+    }
 
-        if (editorPartStack.getActivePart() != null) {
-            return;
+    private void removePartStack(EditorPartStack editorPartStack) {
+        if (activeEditorPartStack == editorPartStack) {
+            activeEditorPartStack = null;
         }
 
         view.removePartStack(editorPartStack);
@@ -173,6 +189,11 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack, Acti
         for (EditorPartStack editorPartStack : partStackPresenters) {
             editorPartStack.updateStack();
         }
+    }
+
+    @Override
+    public EditorPartStack getActivePartStack() {
+        return activeEditorPartStack;
     }
 
     @Nullable
@@ -256,6 +277,24 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack, Acti
     public void onActivePartChanged(ActivePartChangedEvent event) {
         if (event.getActivePart() instanceof EditorPartPresenter) {
             activeEditor = event.getActivePart();
+            activeEditorPartStack = getPartStackByPart(activeEditor);
+            return;
         }
+
+        if (event.getActivePartStack() != null && event.getActivePartStack() instanceof EditorPartStack) {
+            activeEditorPartStack = (EditorPartStack)event.getActivePartStack();
+            activeEditor = null;
+        }
+    }
+
+    @Override
+    public void onClosePane(ClosePaneEvent event) {
+        EditorPartStack editorPartStack = event.getEditorPartStack();
+        for (EditorPartPresenter editorPart : editorAgentProvider.get().getOpenedEditors()) {
+            if (editorPartStack.containsPart(editorPart)) {
+                return;
+            }
+        }
+        removePartStack(editorPartStack);
     }
 }

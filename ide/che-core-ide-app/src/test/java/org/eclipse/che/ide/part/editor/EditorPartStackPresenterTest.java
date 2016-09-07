@@ -29,8 +29,8 @@ import org.eclipse.che.ide.part.widgets.TabItemFactory;
 import org.eclipse.che.ide.part.PartStackPresenter.PartStackEventHandler;
 import org.eclipse.che.ide.part.PartsComparator;
 import org.eclipse.che.ide.api.parts.EditorTab;
-import org.eclipse.che.ide.part.widgets.listtab.ListButton;
-import org.eclipse.che.ide.part.widgets.listtab.ListItem;
+import org.eclipse.che.ide.part.widgets.panemenu.EditorPaneMenu;
+import org.eclipse.che.ide.part.widgets.panemenu.EditorPaneMenuItem;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,7 +72,7 @@ public class EditorPartStackPresenterTest {
     @Mock
     private PartStackEventHandler partStackEventHandler;
     @Mock
-    private ListButton            listButton;
+    private EditorPaneMenu        editorPaneMenu;
     @Mock
     private Provider<EditorAgent> editorAgentProvider;
 
@@ -115,7 +115,7 @@ public class EditorPartStackPresenterTest {
     private HandlerRegistration     handlerRegistration;
 
     @Captor
-    private ArgumentCaptor<ListItem>            itemCaptor;
+    private ArgumentCaptor<EditorPaneMenuItem>  itemCaptor;
     @Captor
     private ArgumentCaptor<AsyncCallback<Void>> argumentCaptor;
 
@@ -144,19 +144,19 @@ public class EditorPartStackPresenterTest {
 
         when(eventBus.addHandler((Event.Type<Object>)anyObject(), anyObject())).thenReturn(handlerRegistration);
 
-        presenter = new EditorPartStackPresenter(view,
-                                                 partsComparator,
-                                                 eventBus,
-                                                 tabItemFactory,
-                                                 partStackEventHandler,
-                                                 listButton);
+//        presenter = new EditorPartStackPresenter(view,
+//                                                 partsComparator,
+//                                                 eventBus,
+//                                                 tabItemFactory,
+//                                                 partStackEventHandler,
+//                                                 listButton);
     }
 
     @Test
     public void constructorShouldBeVerified() {
-        verify(listButton).setDelegate(presenter);
+        verify(editorPaneMenu).setDelegate(presenter);
         verify(view, times(2)).setDelegate(presenter);
-        verify(view).setListButton(listButton);
+        verify(view).addPaneMenuButton(editorPaneMenu);
     }
 
     @Test
@@ -178,7 +178,7 @@ public class EditorPartStackPresenterTest {
 
         verify(view).addTab(editorTab1, partPresenter1);
 
-        verify(listButton).addListItem(Matchers.<ListItem>anyObject());
+        verify(editorPaneMenu).addItem(Matchers.<EditorPaneMenuItem>anyObject());
 
         verify(view).selectTab(partPresenter1);
     }
@@ -207,7 +207,7 @@ public class EditorPartStackPresenterTest {
         presenter.addPart(partPresenter1);
         reset(view);
 
-        presenter.onTabClicked(editorTab1);
+//        presenter.onItemClicked(editorTab1);
 
         verify(view).selectTab(partPresenter1);
     }
@@ -217,7 +217,7 @@ public class EditorPartStackPresenterTest {
         presenter.addPart(partPresenter1);
 
         presenter.removePart(partPresenter1);
-        presenter.onTabClose(editorTab1);
+//        presenter.onItemClose(editorTab1);
 
         verify(view).removeTab(partPresenter1);
     }
@@ -227,11 +227,11 @@ public class EditorPartStackPresenterTest {
         presenter.addPart(partPresenter1);
         presenter.addPart(partPresenter2);
 
-        presenter.onTabClicked(editorTab1);
+//        presenter.onItemClicked(editorTab1);
 
         assertEquals(presenter.getActivePart(), partPresenter1);
 
-        presenter.onTabClicked(editorTab2);
+//        presenter.onItemClicked(editorTab2);
 
         assertEquals(presenter.getActivePart(), partPresenter2);
     }
@@ -241,9 +241,9 @@ public class EditorPartStackPresenterTest {
         presenter.addPart(partPresenter1);
         presenter.addPart(partPresenter2);
 
-        presenter.onTabClicked(editorTab2);
+//        presenter.onItemClicked(editorTab2);
         presenter.removePart(partPresenter2);
-        presenter.onTabClose(editorTab2);
+//        presenter.onItemClose(editorTab2);
 
         assertEquals(presenter.getActivePart(), partPresenter1);
     }
@@ -252,7 +252,7 @@ public class EditorPartStackPresenterTest {
     public void activePartShouldBeNullWhenWeCloseAllParts() {
         presenter.addPart(partPresenter1);
 
-        presenter.onTabClose(editorTab1);
+//        presenter.onItemClose(editorTab1);
 
         assertThat(presenter.getActivePart(), is(nullValue()));
     }

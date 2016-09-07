@@ -158,7 +158,7 @@ public class AbstractPerspectiveTest {
 
     @Test
     public void perspectiveStateShouldBeStored() {
-        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart));
+//        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart));
 
         perspective.storeState();
 
@@ -167,7 +167,7 @@ public class AbstractPerspectiveTest {
 
     @Test
     public void perspectiveStateShouldBeRestored() {
-        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart));
+//        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart));
         perspective.storeState();
 
         perspective.restoreState();

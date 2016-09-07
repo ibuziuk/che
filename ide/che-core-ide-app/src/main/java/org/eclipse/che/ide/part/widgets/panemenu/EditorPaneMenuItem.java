@@ -8,41 +8,34 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.che.ide.part.widgets.listtab;
-
-import com.google.inject.ImplementedBy;
+package org.eclipse.che.ide.part.widgets.panemenu;
 
 import org.eclipse.che.ide.api.mvp.View;
-import org.eclipse.che.ide.api.parts.PartStackView;
 
 import javax.validation.constraints.NotNull;
 
 /**
+ * Contract to implementations of item for displaying in {@link EditorPaneMenu}
+ *
  * @author Dmitry Shnurenko
+ * @author Vitaliy Guliy
  */
-@ImplementedBy(ListButtonWidget.class)
-public interface ListButton extends View<ListButton.ActionDelegate> {
+public interface EditorPaneMenuItem<T> extends View<EditorPaneMenuItem.ActionDelegate> {
 
-    void addListItem(@NotNull ListItem listItem);
-
-    void removeListItem(@NotNull ListItem listItem);
-
-    void setVisible(boolean visible);
+    /** Returns associated data. */
+    T getData();
 
     interface ActionDelegate {
 
-        /**
-         * Handle clicking on list item
-         * @param tab
-         */
-        void onTabClicked(@NotNull PartStackView.TabItem tab);
+        /** Handle clicking on item */
+        void onItemClicked(@NotNull EditorPaneMenuItem item);
 
         /**
-         * Handle clicking on close icon
-         * @param tab
+         * Handle clicking on close button
+         *
+         * @param item
+         *         item to close
          */
-        void onTabClose(@NotNull PartStackView.TabItem tab);
-
+        void onCloseButtonClicked(@NotNull EditorPaneMenuItem item);
     }
-
 }

@@ -75,7 +75,7 @@ public class EditorMultiPartStackPresenterTest {
         when(editorPartStack.containsPart(partPresenter1)).thenReturn(true);
         when(eventBus.addHandler((Event.Type<Object>)anyObject(), anyObject())).thenReturn(handlerRegistration);
 
-        presenter = new EditorMultiPartStackPresenter(eventBus, view, editorPartStackFactory);
+//        presenter = new EditorMultiPartStackPresenter(eventBus, view, editorPartStackFactory);
     }
 
     @Test

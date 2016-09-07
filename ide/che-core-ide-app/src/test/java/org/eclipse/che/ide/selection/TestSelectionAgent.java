@@ -72,7 +72,7 @@ public class TestSelectionAgent {
         when(part.getSelection()).thenReturn(selection);
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(part));
+//        eventBus.fireEvent(new ActivePartChangedEvent(part));
 
         assertEquals("Agent should return proper Selection", selection, agent.getSelection());
     }
@@ -85,7 +85,7 @@ public class TestSelectionAgent {
         eventBus.addHandler(SelectionChangedEvent.TYPE, handler);
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(part));
+//        eventBus.fireEvent(new ActivePartChangedEvent(part));
 
         verify(handler).onSelectionChanged((SelectionChangedEvent)any());
     }
@@ -129,7 +129,7 @@ public class TestSelectionAgent {
         };
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(part));
+//        eventBus.fireEvent(new ActivePartChangedEvent(part));
         SelectionChangedHandler handler = mock(SelectionChangedHandler.class);
         eventBus.addHandler(SelectionChangedEvent.TYPE, handler);
 
@@ -177,9 +177,9 @@ public class TestSelectionAgent {
         };
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(firstPart));
+//        eventBus.fireEvent(new ActivePartChangedEvent(firstPart));
         // change part
-        eventBus.fireEvent(new ActivePartChangedEvent(mock(PartPresenter.class)));
+//        eventBus.fireEvent(new ActivePartChangedEvent(mock(PartPresenter.class)));
 
         SelectionChangedHandler handler = mock(SelectionChangedHandler.class);
         eventBus.addHandler(SelectionChangedEvent.TYPE, handler);

@@ -17,6 +17,10 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 
 import org.eclipse.che.commons.annotation.Nullable;
+import org.eclipse.che.ide.api.action.Action;
+import org.eclipse.che.ide.api.action.ActionEvent;
+import org.eclipse.che.ide.api.action.ActionManager;
+import org.eclipse.che.ide.api.action.Presentation;
 import org.eclipse.che.ide.api.constraints.Constraints;
 import org.eclipse.che.ide.api.editor.AbstractEditorPresenter;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
@@ -34,13 +38,18 @@ import org.eclipse.che.ide.api.resources.ResourceDelta;
 import org.eclipse.che.ide.api.resources.VirtualFile;
 import org.eclipse.che.ide.part.PartStackPresenter;
 import org.eclipse.che.ide.part.PartsComparator;
+import org.eclipse.che.ide.part.editor.actions.CloseAllTabsPaneAction;
+import org.eclipse.che.ide.part.editor.actions.ClosePaneAction;
 import org.eclipse.che.ide.part.editor.event.CloseNonPinnedEditorsEvent;
 import org.eclipse.che.ide.part.editor.event.CloseNonPinnedEditorsEvent.CloseNonPinnedEditorsHandler;
 import org.eclipse.che.ide.part.widgets.TabItemFactory;
-import org.eclipse.che.ide.part.widgets.listtab.ListButton;
-import org.eclipse.che.ide.part.widgets.listtab.ListItem;
-import org.eclipse.che.ide.part.widgets.listtab.ListItemWidget;
+import org.eclipse.che.ide.part.widgets.panemenu.EditorPaneMenu;
+import org.eclipse.che.ide.part.widgets.panemenu.EditorPaneMenuItem;
+import org.eclipse.che.ide.part.widgets.panemenu.PaneMenuActionItemWidget;
+import org.eclipse.che.ide.part.widgets.panemenu.PaneMenuTabItemWidget;
 import org.eclipse.che.ide.resource.Path;
+import org.eclipse.che.ide.ui.toolbar.PresentationFactory;
+import org.eclipse.che.ide.util.loging.Log;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
@@ -50,9 +59,13 @@ import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.filter;
+import static org.eclipse.che.ide.actions.EditorActions.SPLIT_HORIZONTALLY;
+import static org.eclipse.che.ide.actions.EditorActions.SPLIT_VERTICALLY;
 import static org.eclipse.che.ide.api.editor.EditorWithErrors.EditorState.ERROR;
 import static org.eclipse.che.ide.api.editor.EditorWithErrors.EditorState.WARNING;
 import static org.eclipse.che.ide.api.resources.ResourceDelta.REMOVED;
+import static org.eclipse.che.ide.part.editor.actions.EditorAbstractAction.CURRENT_FILE_PROP;
+import static org.eclipse.che.ide.part.editor.actions.EditorAbstractAction.CURRENT_TAB_PROP;
 
 /**
  * EditorPartStackPresenter is a special PartStackPresenter that is shared among all
@@ -66,13 +79,16 @@ import static org.eclipse.che.ide.api.resources.ResourceDelta.REMOVED;
  */
 public class EditorPartStackPresenter extends PartStackPresenter implements EditorPartStack,
                                                                             EditorTab.ActionDelegate,
-                                                                            ListButton.ActionDelegate,
+                                                                            EditorPaneMenu.ActionDelegate,
                                                                             CloseNonPinnedEditorsHandler,
                                                                             ResourceChangedHandler {
-
-    private final EventBus               eventBus;
-    private final ListButton             listButton;
-    private final Map<ListItem, TabItem> items;
+    private final PresentationFactory presentationFactory;
+    private final EventBus            eventBus;
+    private final EditorPaneMenu      editorPaneMenu;
+    private final ActionManager       actionManager;
+    private       ClosePaneAction     closePaneAction;
+    private CloseAllTabsPaneAction closeAllTabsPaneAction;
+    private final Map<EditorPaneMenuItem, TabItem> items;
 
     //this list need to save order of added parts
     private final LinkedList<EditorPartPresenter> partsOrder;
@@ -84,31 +100,51 @@ public class EditorPartStackPresenter extends PartStackPresenter implements Edit
     @Inject
     public EditorPartStackPresenter(EditorPartStackView view,
                                     PartsComparator partsComparator,
+                                    PresentationFactory presentationFactory,
                                     EventBus eventBus,
                                     TabItemFactory tabItemFactory,
                                     PartStackEventHandler partStackEventHandler,
-                                    ListButton listButton) {
+                                    EditorPaneMenu editorPaneMenu,
+                                    ActionManager actionManager,
+                                    ClosePaneAction closePaneAction,
+                                    CloseAllTabsPaneAction closeAllTabsPaneAction) {
         //noinspection ConstantConditions
         super(eventBus, partStackEventHandler, tabItemFactory, partsComparator, view, null);
         this.eventBus = eventBus;
+        this.presentationFactory = presentationFactory;
 
-        this.listButton = listButton;
-        this.listButton.setDelegate(this);
+        this.editorPaneMenu = editorPaneMenu;
+        this.actionManager = actionManager;
+        this.closePaneAction = closePaneAction;
+        this.closeAllTabsPaneAction = closeAllTabsPaneAction;
+        this.editorPaneMenu.setDelegate(this);
 
         this.view.setDelegate(this);
-        view.setListButton(listButton);
-
         this.items = new HashMap<>();
         this.partsOrder = new LinkedList<>();
         this.closedParts = new LinkedList<>();
 
         closeNonPinnedEditorsHandler = eventBus.addHandler(CloseNonPinnedEditorsEvent.getType(), this);
         resourceChangeHandler = eventBus.addHandler(ResourceChangedEvent.getType(), this);
+
+        initializePaneMenu();
+        view.addPaneMenuButton(editorPaneMenu);
+    }
+
+    private void initializePaneMenu() {
+        editorPaneMenu.addItem(new PaneMenuActionItemWidget(closePaneAction));
+        editorPaneMenu.addItem(new PaneMenuActionItemWidget(closeAllTabsPaneAction), true);
+
+        Action splitHorizontallyAction = actionManager.getAction(SPLIT_HORIZONTALLY);
+        editorPaneMenu.addItem(new PaneMenuActionItemWidget(splitHorizontallyAction));
+
+        Action splitVerticallyAction = actionManager.getAction(SPLIT_VERTICALLY);
+        editorPaneMenu.addItem(new PaneMenuActionItemWidget(splitVerticallyAction));
     }
 
     @Nullable
-    private ListItem getListItemByTab(@NotNull TabItem tabItem) {
-        for (Entry<ListItem, TabItem> entry : items.entrySet()) {
+    private EditorPaneMenuItem getListItemByTab(@NotNull TabItem tabItem) {
+        for (Entry<EditorPaneMenuItem, TabItem> entry : items.entrySet()) {
             if (tabItem.equals(entry.getValue())) {
                 return entry.getKey();
             }
@@ -137,6 +173,7 @@ public class EditorPartStackPresenter extends PartStackPresenter implements Edit
         EditorPartPresenter editorPart = (AbstractEditorPresenter)part;
         if (containsPart(editorPart)) {
             setActivePart(editorPart);
+            Log.error(getClass(), "setActivePart RETURN");
             return;
         }
 
@@ -168,8 +205,8 @@ public class EditorPartStackPresenter extends PartStackPresenter implements Edit
         TabItem tabItem = getTabByPart(editorPart);
 
         if (tabItem != null) {
-            ListItem item = new ListItemWidget(tabItem);
-            listButton.addListItem(item);
+            EditorPaneMenuItem item = new PaneMenuTabItemWidget(tabItem);
+            editorPaneMenu.addItem(item);
             items.put(item, tabItem);
         }
 
@@ -225,6 +262,36 @@ public class EditorPartStackPresenter extends PartStackPresenter implements Edit
 
     /** {@inheritDoc} */
     @Override
+    public void onItemClicked(@NotNull EditorPaneMenuItem item) {
+        Object data = item.getData();
+        if (data instanceof TabItem) {
+            TabItem tabItem = (TabItem)data;
+            activePart = parts.get(tabItem);
+            view.selectTab(parts.get(tabItem));
+        } else if (data instanceof Action) {
+            onActionClicked((Action)data);
+        }
+    }
+
+    @Override
+    public void onItemClose(@NotNull EditorPaneMenuItem item) {
+        Object data = item.getData();
+        if (data instanceof EditorTab) {
+            EditorTab editorTab = (EditorTab)data;
+            eventBus.fireEvent(FileEvent.createCloseFileEvent(editorTab));
+        }
+    }
+
+    private void onActionClicked(Action action) {
+        final Presentation presentation = presentationFactory.getPresentation(action);
+        //pass into action file property and editor tab
+        presentation.putClientProperty(CURRENT_TAB_PROP, getTabByPart(getActivePart()));
+        presentation.putClientProperty(CURRENT_FILE_PROP, ((EditorTab)getTabByPart(getActivePart())).getFile());
+        action.actionPerformed(new ActionEvent(presentation, actionManager, null));
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void removePart(PartPresenter part) {
         super.removePart(part);
         if (!(part instanceof EditorPartPresenter)) {
@@ -254,9 +321,9 @@ public class EditorPartStackPresenter extends PartStackPresenter implements Edit
     /** {@inheritDoc} */
     @Override
     public void onTabClose(@NotNull TabItem tab) {
-        ListItem listItem = getListItemByTab(tab);
-        listButton.removeListItem(listItem);
-        items.remove(listItem);
+        EditorPaneMenuItem editorPaneMenuItem = getListItemByTab(tab);
+        editorPaneMenu.removeItem(editorPaneMenuItem);
+        items.remove(editorPaneMenuItem);
 
         EditorPartPresenter part = ((EditorTab)tab).getRelativeEditorPart();
         closedParts.add(part);

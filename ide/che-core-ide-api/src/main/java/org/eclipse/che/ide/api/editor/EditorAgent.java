@@ -61,6 +61,17 @@ public interface EditorAgent {
     void closeEditor(EditorPartPresenter editorPart);
 
     /**
+     * Close editor part
+     *
+     * @param editorPart
+     *         the part to close
+     * @param isAbleClosePane
+     *         whether the pane which contains {@code editorPart} is able to close or not.
+     *         Note: it is possible to close the pane when this one doesn't contains editors anymore.
+     */
+    void closeEditor(EditorPartPresenter editorPart, boolean isAbleClosePane);
+
+    /**
      * Open editor with given file, call callback when editor fully loaded and initialized.
      * @param file the file to open
      * @param callback

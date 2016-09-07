@@ -23,6 +23,24 @@ import javax.validation.constraints.NotNull;
 public interface EditorMultiPartStack extends PartStack {
 
     /**
+     * Get active {@link EditorPartStack}
+     *
+     * @return active editor part stack or null if this one is absent
+     */
+    @Nullable
+    EditorPartStack getActivePartStack();
+
+    /**
+     * Get {@link EditorPartStack} for given {@code part}
+     *
+     * @param part
+     *         editor part to find corresponding editor part stack
+     * @return editor part stack which contains given {@code part} or null if this one is not found in any {@link EditorPartStack}
+     */
+    @Nullable
+    EditorPartStack getPartStackByPart(PartPresenter part);
+
+    /**
      * Get editor part which associated with given {@code tabId}
      *
      * @param tabId

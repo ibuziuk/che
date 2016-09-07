@@ -49,7 +49,7 @@ public class CloseOtherAction extends EditorAbstractAction {
         EditorPartPresenter currentEditor = getEditorTab(event).getRelativeEditorPart();
         for (EditorPartPresenter editorPart : editorAgent.getOpenedEditorsBasedOn(currentEditor)) {
             if (currentEditor != editorPart) {
-                editorAgent.closeEditor(editorPart);
+                editorAgent.closeEditor(editorPart, false);
             }
         }
     }

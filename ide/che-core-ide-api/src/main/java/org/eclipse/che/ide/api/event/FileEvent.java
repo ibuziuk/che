@@ -39,6 +39,7 @@ public class FileEvent extends GwtEvent<FileEvent.FileEventHandler> {
     private VirtualFile   file;
     private FileOperation fileOperation;
     private EditorTab     tab;
+    private boolean       isAbleClosePane;
 
     /**
      * Creates new {@link FileEvent}.
@@ -53,9 +54,19 @@ public class FileEvent extends GwtEvent<FileEvent.FileEventHandler> {
         this.fileOperation = fileOperation;
     }
 
-    private FileEvent(EditorTab tab, FileOperation fileOperation) {
-        this(tab.getFile(), fileOperation);
+    /**
+     * Creates new {@link FileEvent} for {@code FileOperation.CLOSE}.
+     *
+     * @param tab
+     *         tab of the file to close
+     * @param isAbleClosePane
+     *         whether the pane which contains {@code tab} is able to close or not.
+     *         Note: it is possible to close the pane when this one doesn't contains editors anymore.
+     */
+    private FileEvent(EditorTab tab, boolean isAbleClosePane) {
+        this(tab.getFile(), CLOSE);
         this.tab = tab;
+        this.isAbleClosePane = isAbleClosePane;
     }
 
     /**
@@ -67,9 +78,27 @@ public class FileEvent extends GwtEvent<FileEvent.FileEventHandler> {
 
     /**
      * Creates a event for {@code FileOperation.CLOSE}.
+     * Note: the pane which contains this {@code tab} will be closed when the pane doesn't contains editors anymore.
+     * Use {@link #createCloseFileEvent(EditorTab tab, boolean isAbleClosePane)} to manage this option.
+     *
+     * @param tab
+     *         tab of the file to close
      */
     public static FileEvent createCloseFileEvent(EditorTab tab) {
-        return new FileEvent(tab, CLOSE);
+        return new FileEvent(tab, true);
+    }
+
+    /**
+     * Creates a event for {@code FileOperation.CLOSE}.
+     *
+     * @param tab
+     *         tab of the file to close
+     * @param isAbleClosePane
+     *         whether the pane which contains this {@code tab} is able to close or not.
+     *         Note: it is possible to close the pane when this one doesn't contains editors anymore.
+     */
+    public static FileEvent createCloseFileEvent(EditorTab tab, boolean isAbleClosePane) {
+        return new FileEvent(tab, isAbleClosePane);
     }
 
     /**
@@ -98,6 +127,11 @@ public class FileEvent extends GwtEvent<FileEvent.FileEventHandler> {
     @Nullable
     public EditorTab getEditorTab() {
         return tab;
+    }
+
+    /** Indicates whether the pane which contains this editor is able to close or not. */
+    public boolean isAbleClosePane() {
+        return isAbleClosePane;
     }
 
     @Override

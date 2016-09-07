@@ -20,19 +20,18 @@ import org.eclipse.che.ide.api.editor.EditorAgent;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
 
 /**
- * Performs closing pane and all opened editors for current pane.
+ * Performs closing current pane and all opened editors for this one.
  *
- * @author Vlad Zhukovskiy
  * @author Roman Nikitenko
  */
 @Singleton
-public class CloseAllAction extends EditorAbstractAction {
+public class ClosePaneAction extends EditorAbstractAction {
 
     @Inject
-    public CloseAllAction(EditorAgent editorAgent,
-                          EventBus eventBus,
-                          CoreLocalizationConstant locale) {
-        super(locale.editorTabCloseAll(), locale.editorTabCloseAllDescription(), null, editorAgent, eventBus);
+    public ClosePaneAction(EditorAgent editorAgent,
+                           EventBus eventBus,
+                           CoreLocalizationConstant locale) {
+        super(locale.editorClosePane(), locale.editorClosePaneDescription(), null, editorAgent, eventBus);
     }
 
     /** {@inheritDoc} */
