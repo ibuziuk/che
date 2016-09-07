@@ -29,6 +29,8 @@ import org.eclipse.che.ide.api.parts.PartPresenter;
 import org.eclipse.che.ide.part.editor.EditorPartStackFactory;
 import org.eclipse.che.ide.part.editor.event.ClosePaneEvent;
 import org.eclipse.che.ide.part.editor.event.ClosePaneEvent.ClosePaneHandler;
+import org.eclipse.che.ide.part.editor.event.SplitEmptyPaneEvent;
+import org.eclipse.che.ide.part.editor.event.SplitEmptyPaneEvent.SplitEmptyPaneHandler;
 import org.eclipse.che.ide.util.loging.Log;
 
 import javax.validation.constraints.NotNull;
@@ -42,7 +44,8 @@ import java.util.LinkedList;
 @Singleton
 public class EditorMultiPartStackPresenter implements EditorMultiPartStack,
                                                       ActivePartChangedHandler,
-                                                      ClosePaneHandler {
+                                                      ClosePaneHandler,
+                                                      SplitEmptyPaneHandler {
     private PartPresenter   activeEditor;
     private EditorPartStack activeEditorPartStack;
 
@@ -63,6 +66,7 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack,
 
         eventBus.addHandler(ActivePartChangedEvent.TYPE, this);
         eventBus.addHandler(ClosePaneEvent.getType(), this);
+        eventBus.addHandler(SplitEmptyPaneEvent.getType(), this);
     }
 
 
@@ -116,7 +120,10 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack,
         partStackPresenters.add(editorPartStack);
 
         view.addPartStack(editorPartStack, relativePartStack, constraints);
-        editorPartStack.addPart(part);
+
+        if (part != null) {
+            editorPartStack.addPart(part);
+        }
     }
 
     @Override
@@ -296,5 +303,11 @@ public class EditorMultiPartStackPresenter implements EditorMultiPartStack,
             }
         }
         removePartStack(editorPartStack);
+    }
+
+    @Override
+    public void onSplitEmptyPane(SplitEmptyPaneEvent event) {
+        Constraints constraints = new Constraints(event.getDirection(), null);
+        addEditorPartStack(null, event.getPaneToSplitting(), constraints);
     }
 }

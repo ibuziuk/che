@@ -14,7 +14,6 @@ import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
 import org.eclipse.che.ide.api.parts.EditorPartStack;
-import org.eclipse.che.ide.util.loging.Log;
 
 /**
  * Close current pane event.
@@ -46,7 +45,6 @@ public class ClosePaneEvent extends GwtEvent<ClosePaneEvent.ClosePaneHandler> {
      *         pane to close
      */
     public ClosePaneEvent(EditorPartStack editorPartStack) {
-        Log.error(getClass(), "ClosePaneEvent constructor");
         this.editorPartStack = editorPartStack;
     }
 

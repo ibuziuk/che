@@ -18,6 +18,7 @@ import org.eclipse.che.ide.CoreLocalizationConstant;
 import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.api.constraints.Constraints;
 import org.eclipse.che.ide.api.editor.EditorAgent;
+import org.eclipse.che.ide.util.loging.Log;
 
 import static org.eclipse.che.ide.api.constraints.Direction.VERTICALLY;
 
@@ -39,6 +40,7 @@ public class SplitVerticallyAction extends EditorAbstractAction {
     /** {@inheritDoc} */
     @Override
     public void actionPerformed(ActionEvent e) {
+        Log.error(getClass(), "split vertically action tab " + getEditorTab(e));
         Constraints constraints = new Constraints(VERTICALLY, getEditorTab(e).getId());
         editorAgent.openEditor(getEditorFile(e), constraints);
     }

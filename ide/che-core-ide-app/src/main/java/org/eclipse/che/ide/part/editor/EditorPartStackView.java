@@ -261,6 +261,10 @@ public class EditorPartStackView extends ResizeComposite implements PartStackVie
     /** {@inheritDoc} */
     @Override
     public void setFocus(boolean focused) {
+        if (activeTab == null) {
+            return;
+        }
+
         if (focused) {
             activeTab.select();
         } else {

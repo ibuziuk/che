@@ -22,6 +22,7 @@ import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.api.action.ActionManager;
 import org.eclipse.che.ide.api.action.Presentation;
 import org.eclipse.che.ide.api.constraints.Constraints;
+import org.eclipse.che.ide.api.constraints.Direction;
 import org.eclipse.che.ide.api.editor.AbstractEditorPresenter;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
 import org.eclipse.che.ide.api.editor.EditorWithErrors;
@@ -42,6 +43,7 @@ import org.eclipse.che.ide.part.editor.actions.CloseAllTabsPaneAction;
 import org.eclipse.che.ide.part.editor.actions.ClosePaneAction;
 import org.eclipse.che.ide.part.editor.event.CloseNonPinnedEditorsEvent;
 import org.eclipse.che.ide.part.editor.event.CloseNonPinnedEditorsEvent.CloseNonPinnedEditorsHandler;
+import org.eclipse.che.ide.part.editor.event.SplitEmptyPaneEvent;
 import org.eclipse.che.ide.part.widgets.TabItemFactory;
 import org.eclipse.che.ide.part.widgets.panemenu.EditorPaneMenu;
 import org.eclipse.che.ide.part.widgets.panemenu.EditorPaneMenuItem;
@@ -284,9 +286,19 @@ public class EditorPartStackPresenter extends PartStackPresenter implements Edit
 
     private void onActionClicked(Action action) {
         final Presentation presentation = presentationFactory.getPresentation(action);
+        PartPresenter activePart = getActivePart();
+        Log.error(getClass(), "=== on action clicked active part " + activePart);
+        TabItem tab = getTabByPart(activePart);
+        if (tab == null) {
+            eventBus.fireEvent(new SplitEmptyPaneEvent(Direction.HORIZONTALLY, this));
+            return;
+        }
+        Log.error(getClass(), "=== on action clicked tab " + tab);
+        VirtualFile virtualFile = ((EditorTab)tab).getFile();
+        Log.error(getClass(), "=== on action clicked file " + virtualFile);
         //pass into action file property and editor tab
-        presentation.putClientProperty(CURRENT_TAB_PROP, getTabByPart(getActivePart()));
-        presentation.putClientProperty(CURRENT_FILE_PROP, ((EditorTab)getTabByPart(getActivePart())).getFile());
+        presentation.putClientProperty(CURRENT_TAB_PROP, tab);
+        presentation.putClientProperty(CURRENT_FILE_PROP, virtualFile);
         action.actionPerformed(new ActionEvent(presentation, actionManager, null));
     }
 
