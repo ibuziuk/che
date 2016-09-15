@@ -40,7 +40,7 @@ export class CheProjectType {
   fetchTypes() {
     var defer = this.$q.defer();
     let promise = this.remoteProjectTypeAPI.query().$promise;
-    let updatedPromise = promise.then((projectTypes) => {
+    promise.then((projectTypes) => {
 
       // reset global list
       this.workspaceTypes = projectTypes;

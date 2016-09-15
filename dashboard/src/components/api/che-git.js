@@ -47,11 +47,11 @@ export class CheGit {
     let parsedResultPromise = promise.then((data) => {
       var localUrl = '';
       //TODO why the type may not be a string
-      if (typeof data === 'string') {
+      if (angular.isString(data)) {
         localUrl = data;
       } else {
         angular.forEach(data, function (value) {
-          if (typeof value === 'string') {
+          if (angular.isString(value)) {
             localUrl += value;
           }
         });

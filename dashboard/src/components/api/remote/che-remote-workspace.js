@@ -83,7 +83,7 @@ export class CheRemoteWorkspace {
       }
     });
 
-    let promise = this.remoteWorkspaceAPI.startWorkspace({workspaceId: workspaceId, envName : envName}, {}).$promise;
+    this.remoteWorkspaceAPI.startWorkspace({workspaceId: workspaceId, envName : envName}, {}).$promise;
 
     return deferredPromise;
   }

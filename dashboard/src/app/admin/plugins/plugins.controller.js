@@ -23,13 +23,14 @@ export class AdminPluginsCtrl {
    * Default constructor
    * @ngInject for Dependency injection
    */
-  constructor($scope, $q, $mdDialog, $interval, $location, $anchorScroll, cheNotification, cheAdminPlugins) {
+  constructor($scope, $q, $mdDialog, $interval, $location, $anchorScroll, $log, cheNotification, cheAdminPlugins) {
     this.$scope = $scope;
     this.$q = $q;
     this.$mdDialog = $mdDialog;
     this.$interval = $interval;
     this.$location = $location;
     this.$anchorScroll = $anchorScroll;
+    this.$log = $log;
     this.cheNotification = cheNotification;
     this.cheAdminPlugins = cheAdminPlugins;
 
@@ -79,7 +80,7 @@ export class AdminPluginsCtrl {
         this.refreshPlugins();
       }, (error) => {
         this.cheNotification.showError(error.data.message ? error.data.message : 'Delete failed.');
-        console.log('error', error);
+        $log.error(error);
       });
     });
 
