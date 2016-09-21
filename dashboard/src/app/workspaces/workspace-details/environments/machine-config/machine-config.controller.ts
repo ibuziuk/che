@@ -50,6 +50,7 @@ export class WorkspaceMachineConfigController {
       isDev: this.environmentManager.isDev(this.machine),
       memoryLimitBytes: this.environmentManager.getMemoryLimit(this.machine),
       servers: this.environmentManager.getServers(this.machine),
+      agents: this.environmentManager.getAgents(this.machine),
       canEditEnvVariables: this.environmentManager.canEditEnvVariables(this.machine),
       envVariables: this.environmentManager.getEnvVariables(this.machine),
       canRenameMachine: this.environmentManager.canRenameMachine(this.machine),
@@ -57,7 +58,6 @@ export class WorkspaceMachineConfigController {
     };
 
     this.newDev = this.machineConfig.isDev;
-
     this.newRam = this.machineConfig.memoryLimitBytes;
   }
 
@@ -88,6 +88,7 @@ export class WorkspaceMachineConfigController {
     }, 1000);
   }
 
+
   /**
    * Updates amount of RAM for machine after a delay
    * @param isFormValid {boolean}
@@ -117,6 +118,14 @@ export class WorkspaceMachineConfigController {
     return this.doUpdateConfig();
   }
 
+  /**
+   * Callback which is called in order to update list of agents
+   * @returns {Promise}
+   */
+  updateAgents(agent) {
+    this.environmentManager.setAgents(this.machine, this.machineConfig.agents);
+    return this.doUpdateConfig();
+  }
   /**
    * Callback which is called in order to update list of environment variables
    * @returns {Promise}
