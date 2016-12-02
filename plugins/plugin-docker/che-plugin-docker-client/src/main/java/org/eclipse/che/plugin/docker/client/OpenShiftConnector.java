@@ -23,6 +23,8 @@ import com.openshift.restclient.ResourceKind;
 import com.openshift.restclient.images.DockerImageURI;
 import com.openshift.restclient.model.*;
 import com.openshift.restclient.model.deploy.DeploymentTriggerType;
+
+import org.apache.commons.lang.RandomStringUtils;
 import org.eclipse.che.plugin.docker.client.json.ContainerCreated;
 import org.eclipse.che.plugin.docker.client.json.ContainerInfo;
 import org.eclipse.che.plugin.docker.client.json.PortBinding;
@@ -100,7 +102,7 @@ public class OpenShiftConnector {
     public ContainerCreated createContainer(DockerConnector docker, CreateContainerParams createContainerParams) throws IOException {
 
         String containerName = getNormalizedContainerName(createContainerParams);
-        String workspaceID = getCheWorkspaceId(createContainerParams);
+        String workspaceID = generateWorkspaceID();
         String imageName = createContainerParams.getContainerConfig().getImage();//"mariolet/che-ws-agent";//"172.30.166.244:5000/eclipse-che/che-ws-agent:latest";//
         Set<String> containerExposedPorts = createContainerParams.getContainerConfig().getExposedPorts().keySet();
         Set<String> imageExposedPorts = docker.inspectImage(imageName).getConfig().getExposedPorts().keySet();
@@ -237,18 +239,25 @@ public class OpenShiftConnector {
                                  orElse("");
         return workspaceID.replaceFirst("workspace","");
     }
+    
+	private String generateWorkspaceID() {
+		return RandomStringUtils.random(16, true, true).toLowerCase();
+	}
 
-    private IProject getCheProject() throws IOException {
-        List<IProject> list = openShiftClient.list(ResourceKind.PROJECT);
-        IProject cheProject = list.stream()
-                                   .filter(p -> p.getName().equals(cheOpenShiftProjectName))
-                                   .findFirst().orElse(null);
-        if (cheProject == null) {
-            LOG.error("OpenShift project " + cheOpenShiftProjectName + " not found");
-            throw new IOException("OpenShift project " + cheOpenShiftProjectName + " not found");
-        }
-        return cheProject;
-    }
+	private String getWorkspaceIDFromContainerName(String name) {
+		return name.substring(0, name.indexOf('-'));
+	}
+
+	private IProject getCheProject() throws IOException {
+		List<IProject> list = openShiftClient.list(ResourceKind.PROJECT);
+		IProject cheProject = list.stream().filter(p -> p.getName().equals(cheOpenShiftProjectName)).findFirst()
+				.orElse(null);
+		if (cheProject == null) {
+			LOG.error("OpenShift project " + cheOpenShiftProjectName + " not found");
+			throw new IOException("OpenShift project " + cheOpenShiftProjectName + " not found");
+		}
+		return cheProject;
+	}
 
     private void createOpenShiftService(IProject cheProject, String workspaceID, Set<String> exposedPorts) {
         IService service = openShiftFactory.create(OPENSHIFT_API_VERSION, ResourceKind.SERVICE);
@@ -276,7 +285,7 @@ public class OpenShiftConnector {
         ((DeploymentConfig) dc).setName(dcName);
         ((DeploymentConfig) dc).setNamespace(cheProject.getName());
 //        ((DeploymentConfig) dc).getNode().get("spec").get("template").get("spec").get("dnsPolicy").set("Default");
-        ((DeploymentConfig)dc).getNode().get("spec").get("template").get("spec").get("securityContext").get("runAsUser").set("1000");
+        ((DeploymentConfig)dc).getNode().get("spec").get("template").get("spec").get("securityContext").get("runAsRoot").set("1000");
 
         dc.setReplicas(1);
         dc.setReplicaSelector("deploymentConfig", dcName);
@@ -300,17 +309,19 @@ public class OpenShiftConnector {
                 containerEnv,
                 Collections.emptyList());
         dc.getContainer(containerName).setImagePullPolicy(IMAGE_PULL_POLICY_IFNOTPRESENT);
-
+        
+        ModelNode modelNode = ((DeploymentConfig)dc).getNode().get("spec").get("template").get("spec").get("containers");
+        
         ModelNode dcFirstContainer = ((DeploymentConfig)dc).getNode().get("spec").get("template").get("spec").get("containers").get(0);
 
         // Run as root user
         dcFirstContainer.get("securityContext").get("privileged").set(true);
-        dcFirstContainer.get("securityContext").get("runAsUser").set("1000");
+        dcFirstContainer.get("securityContext").get("runAsRoot").set("1000");
 
         // LivenessProbe
-        dcFirstContainer.get("livenessProbe").get("tcpSocket").get("port").set(4401);
-        dcFirstContainer.get("livenessProbe").get("initialDelaySeconds").set(120);
-        dcFirstContainer.get("livenessProbe").get("timeoutSeconds").set(1);
+//        dcFirstContainer.get("livenessProbe").get("tcpSocket").get("port").set(4401);
+//        dcFirstContainer.get("livenessProbe").get("initialDelaySeconds").set(120);
+//        dcFirstContainer.get("livenessProbe").get("timeoutSeconds").set(1);
     }
 
     private String waitAndRetrieveContainerID(IProject cheproject, String deploymentConfigName) {
