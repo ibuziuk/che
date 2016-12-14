@@ -1,13 +1,20 @@
 package org.eclipse.che.plugin.docker.client;
 
-import com.openshift.internal.restclient.ResourceFactory;
-import com.openshift.restclient.IClient;
-import com.openshift.restclient.IResourceFactory;
-import com.openshift.restclient.model.IPort;
-import com.openshift.restclient.model.IServicePort;
-import io.fabric8.kubernetes.api.model.ContainerPort;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.ServicePort;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.eclipse.che.plugin.docker.client.json.ContainerConfig;
 import org.eclipse.che.plugin.docker.client.json.ExposedPort;
 import org.eclipse.che.plugin.docker.client.params.CreateContainerParams;
@@ -15,13 +22,9 @@ import org.mockito.Mock;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.ServicePort;
 
 public class OpenShiftConnectorTest {
 
@@ -37,17 +40,10 @@ public class OpenShiftConnectorTest {
     @Mock
     private CreateContainerParams createContainerParams;
 
-    @Mock
-    private IClient openShiftClient;
-
-    @Mock
-    private IResourceFactory openShiftResourceFactory;
-
     private OpenShiftConnector openShiftConnector;
 
     @BeforeMethod
     public void setup() {
-        openShiftResourceFactory = spy(new ResourceFactory(openShiftClient));
         openShiftConnector = spy(new OpenShiftConnector(OPENSHIFT_API_ENDPOINT_MINISHIFT,
                                                         OPENSHIFT_DEFAULT_USER_NAME,
                                                         OPENSHIFT_DEFAULT_USER_PASSWORD,
