@@ -11,6 +11,7 @@
 package org.eclipse.che.plugin.openshift.client;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,14 +33,23 @@ import org.eclipse.che.plugin.docker.client.DockerApiVersionPathPrefixProvider;
 import org.eclipse.che.plugin.docker.client.DockerConnector;
 import org.eclipse.che.plugin.docker.client.DockerConnectorConfiguration;
 import org.eclipse.che.plugin.docker.client.DockerRegistryAuthResolver;
+import org.eclipse.che.plugin.docker.client.ProgressMonitor;
 import org.eclipse.che.plugin.docker.client.connection.DockerConnectionFactory;
+import org.eclipse.che.plugin.docker.client.dto.AuthConfigs;
+import org.eclipse.che.plugin.docker.client.exception.ImageNotFoundException;
 import org.eclipse.che.plugin.docker.client.json.ContainerCreated;
 import org.eclipse.che.plugin.docker.client.json.ContainerInfo;
+import org.eclipse.che.plugin.docker.client.json.ContainerListEntry;
 import org.eclipse.che.plugin.docker.client.json.ImageConfig;
 import org.eclipse.che.plugin.docker.client.json.PortBinding;
+import org.eclipse.che.plugin.docker.client.params.BuildImageParams;
 import org.eclipse.che.plugin.docker.client.params.CreateContainerParams;
+import org.eclipse.che.plugin.docker.client.params.GetResourceParams;
+import org.eclipse.che.plugin.docker.client.params.PullParams;
 import org.eclipse.che.plugin.docker.client.params.RemoveContainerParams;
 import org.eclipse.che.plugin.docker.client.params.StartContainerParams;
+import org.eclipse.che.plugin.docker.client.params.StopContainerParams;
+import org.eclipse.che.plugin.docker.client.params.TagParams;
 import org.eclipse.che.plugin.docker.client.params.network.ConnectContainerToNetworkParams;
 import org.eclipse.che.plugin.openshift.client.kubernetes.KubernetesContainer;
 import org.eclipse.che.plugin.openshift.client.kubernetes.KubernetesEnvVar;
@@ -176,6 +186,82 @@ public class OpenShiftConnector extends DockerConnector {
     @Override
     public void startContainer(final StartContainerParams params) throws IOException {
         // Not used in OpenShift
+    }
+    
+    @Override
+    public void stopContainer(StopContainerParams params) throws IOException {
+        super.stopContainer(params);
+    }
+    
+    @Override
+    public List<ContainerListEntry> listContainers() throws IOException {
+       PodList list = openShiftClient.pods().inNamespace(this.cheOpenShiftProjectName).list();
+       return super.listContainers();
+    }
+    
+    @Override
+    public InputStream getResource(GetResourceParams params) throws IOException {
+        // TODO Auto-generated method stub
+        return super.getResource(params);
+    }
+    
+    @Override
+    public void tag(TagParams params) throws ImageNotFoundException, IOException {
+        // TODO Auto-generated method stub
+        String tag = params.getTag();
+        String image = params.getImage();
+        String repository = params.getRepository();
+        Boolean force = params.isForce();
+        
+        
+//        LOG.info("Created istag", openShiftClient.imageStreamTags().createNew()
+//          .withNewMetadata().withName("bar1:1.0.12")
+//          .and()
+//          .withNewTag().withNewFrom().withKind("DockerImage").withName("openshift/wildfly-81-centos7:latest")
+//          .and()
+//          .and()
+//          .done()
+//        );
+        
+        super.tag(params);
+    }
+    
+    @Override
+    public void pull(PullParams params, ProgressMonitor progressMonitor) throws IOException {
+        // TODO Auto-generated method stub
+        String paramString = params.toString();
+        String image = params.getImage();
+        AuthConfigs authConfigs = params.getAuthConfigs();
+        String registry = params.getRegistry();
+        String fullRepo = params.getFullRepo();
+        String[] split = paramString.split("/");
+        String tag = params.getTag();
+
+//        LOG.info("Created image stream", openShiftClient.imageStreams().inNamespace(this.cheOpenShiftProjectName).createNew()
+//          .withNewMetadata()
+//          .withName(split[1])
+//          .endMetadata()
+//          .withNewSpec()
+//          .addNewTag()
+//          .withName(tag)
+//          .endTag()
+//          .withDockerImageRepository(params.getFullRepo())
+//          .endSpec()
+//          .withNewStatus().withDockerImageRepository("").endStatus()
+//          .done());
+
+        super.pull(params, progressMonitor);
+    }
+    
+    @Override
+    public String buildImage(BuildImageParams params, ProgressMonitor progressMonitor) throws IOException {
+        String remote = params.getRemote();
+        if (remote != null) {
+            LOG.info(remote);
+        } else {
+            
+        }
+        return super.buildImage(params, progressMonitor);
     }
 
     /**
