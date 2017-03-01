@@ -82,6 +82,8 @@ import org.slf4j.LoggerFactory;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -99,6 +101,7 @@ import io.fabric8.kubernetes.api.model.extensions.Deployment;
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamTag;
+import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 
@@ -114,10 +117,12 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Singleton
 public class OpenShiftConnector extends DockerConnector {
     private static final Logger LOG                                      = LoggerFactory.getLogger(OpenShiftConnector.class);
+    private static final String CHE_SERVER_ROUTE_NAME                    = "che-host";
     private static final String CHE_CONTAINER_IDENTIFIER_LABEL_KEY       = "cheContainerIdentifier";
     private static final String CHE_DEFAULT_EXTERNAL_ADDRESS             = "172.17.0.1";
     private static final String CHE_OPENSHIFT_RESOURCES_PREFIX           = "che-ws-";
     private static final String CHE_WORKSPACE_ID_ENV_VAR                 = "CHE_WORKSPACE_ID";
+    private static final String CHE_DOCKER_IP_EXTERNAL_ENV_VAR           = "CHE_DOCKER_IP_EXTERNAL";
     private static final int CHE_WORKSPACE_AGENT_PORT                    = 4401;
     private static final int CHE_TERMINAL_AGENT_PORT                     = 4411;
     private static final String DOCKER_PROTOCOL_PORT_DELIMITER           = "/";
@@ -132,6 +137,7 @@ public class OpenShiftConnector extends DockerConnector {
     private static final Long UID_ROOT                                   = Long.valueOf(0);
     private static final Long UID_USER                                   = Long.valueOf(1000);
 
+    
     private final OpenShiftClient openShiftClient;
     private final String          openShiftCheProjectName;
     private final String          openShiftCheServiceAccount;
@@ -762,19 +768,24 @@ public class OpenShiftConnector extends DockerConnector {
                                              Set<String> exposedPorts,
                                              String[] envVariables,
                                              String[] volumes,
-                                             boolean runContainerAsRoot) {
+                                             boolean runContainerAsRoot) throws OpenShiftException {
 
         String deploymentName = CHE_OPENSHIFT_RESOURCES_PREFIX + workspaceID;
         LOG.info("Creating OpenShift deployment {}", deploymentName);
-
         Map<String, String> selector = Collections.singletonMap(OPENSHIFT_DEPLOYMENT_LABEL, deploymentName);
+
+        List<EnvVar> envVars = KubernetesEnvVar.getEnvFrom(envVariables);
+        if (!envVars.contains(CHE_DOCKER_IP_EXTERNAL_ENV_VAR)) {
+            String cheServerHost = getCheServerHost();
+            envVars.add(new EnvVarBuilder().withName(CHE_DOCKER_IP_EXTERNAL_ENV_VAR).withValue(cheServerHost).build());
+        }
 
         LOG.info("Adding container {} to OpenShift deployment {}", sanitizedContainerName, deploymentName);
         Long UID = runContainerAsRoot ? UID_ROOT : UID_USER;
         Container container = new ContainerBuilder()
                                     .withName(sanitizedContainerName)
                                     .withImage(imageName)
-                                    .withEnv(KubernetesEnvVar.getEnvFrom(envVariables))
+                                    .withEnv(envVars)
                                     .withPorts(KubernetesContainer.getContainerPortsFrom(exposedPorts))
                                     .withImagePullPolicy(OPENSHIFT_IMAGE_PULL_POLICY_IFNOTPRESENT)
                                     .withNewSecurityContext()
@@ -1061,6 +1072,14 @@ public class OpenShiftConnector extends DockerConnector {
             }
         }
         return null;
+    }
+
+    private String getCheServerHost() throws OpenShiftException {
+        Route route = openShiftClient.routes().withName(CHE_SERVER_ROUTE_NAME).get();
+        if (route == null) {
+            throw new OpenShiftException("Route '" + CHE_SERVER_ROUTE_NAME + "' not found");
+        }
+        return route.getSpec().getHost();
     }
 
     /**
