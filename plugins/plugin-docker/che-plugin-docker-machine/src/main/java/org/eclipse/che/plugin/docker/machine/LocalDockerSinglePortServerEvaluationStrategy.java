@@ -47,8 +47,9 @@ public class LocalDockerSinglePortServerEvaluationStrategy extends LocalDockerSe
 
     @Inject
     public LocalDockerSinglePortServerEvaluationStrategy(@Nullable @Named("che.docker.ip") String internalAddress,
-                                                         @Nullable @Named("che.docker.ip.external") String externalAddress) {
-        super(internalAddress, externalAddress);
+                                                         @Nullable @Named("che.docker.ip.external") String externalAddress,
+                                                         @Nullable @Named("che.port") String chePort) {
+        super(internalAddress, externalAddress, chePort);
     }
 
     @Override

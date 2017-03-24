@@ -947,6 +947,9 @@ public class OpenShiftConnector extends DockerConnector {
                         .withStrVal(serverRef)
                     .endTargetPort()
                 .endPort()
+                .withNewTls()
+                    .withTermination("edge")
+                .endTls()
                 .endSpec()
                 .done();
 

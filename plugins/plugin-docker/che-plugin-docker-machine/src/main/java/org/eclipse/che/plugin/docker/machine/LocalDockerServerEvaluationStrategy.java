@@ -48,11 +48,22 @@ public class LocalDockerServerEvaluationStrategy extends ServerEvaluationStrateg
      */
     protected String externalAddressProperty;
 
+    protected String chePort;
+
     @Inject
     public LocalDockerServerEvaluationStrategy(@Nullable @Named("che.docker.ip") String internalAddress,
                                                @Nullable @Named("che.docker.ip.external") String externalAddress) {
         this.internalAddressProperty = internalAddress;
         this.externalAddressProperty = externalAddress;
+    }
+
+    @Inject
+    public LocalDockerServerEvaluationStrategy(@Nullable @Named("che.docker.ip") String internalAddress,
+                                               @Nullable @Named("che.docker.ip.external") String externalAddress,
+                                               @Nullable @Named("che.port") String chePort) {
+        this.internalAddressProperty = internalAddress;
+        this.externalAddressProperty = externalAddress;
+        this.chePort = chePort;
     }
 
     @Override
