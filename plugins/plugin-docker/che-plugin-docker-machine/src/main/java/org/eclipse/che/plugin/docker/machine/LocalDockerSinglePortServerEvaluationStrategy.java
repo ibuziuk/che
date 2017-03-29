@@ -66,7 +66,7 @@ public class LocalDockerSinglePortServerEvaluationStrategy extends LocalDockerSe
         Map<String, String> addressesAndPorts = new HashMap<>();
         for (String serverKey : portBindings.keySet()) {
             String serverName = getWorkspaceServerName(labels, serverKey);
-            String serverURL = serverName + "." + workspaceID + "." + cheExternalAddress + ":" + externalPort;
+            String serverURL = serverName + "." + workspaceID + "." + cheExternalAddress;
             addressesAndPorts.put(serverKey, serverURL);
         }
 

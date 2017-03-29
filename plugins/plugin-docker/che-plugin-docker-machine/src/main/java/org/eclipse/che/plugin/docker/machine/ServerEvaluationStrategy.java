@@ -112,7 +112,8 @@ public abstract class ServerEvaluationStrategy {
             // Add protocol and path to internal/external address, if applicable
             String internalUrl = null;
             String externalUrl = null;
-            if (serverConf.getProtocol() != null) {
+            String protocol = serverConf.getProtocol();
+            if (protocol != null) {
                 String pathSuffix = serverConf.getPath();
                 if (pathSuffix != null && !pathSuffix.isEmpty()) {
                     if (pathSuffix.charAt(0) != '/') {
@@ -121,8 +122,12 @@ public abstract class ServerEvaluationStrategy {
                 } else {
                     pathSuffix = "";
                 }
-                internalUrl = serverConf.getProtocol() + "://" + internalAddressAndPort + pathSuffix;
-                externalUrl = serverConf.getProtocol() + "://" + externalAddressAndPort + pathSuffix;
+
+                internalUrl = protocol + "://" + internalAddressAndPort + pathSuffix;
+
+                protocol = (protocol.equals("http")) ? "https" : protocol;
+
+                externalUrl = protocol + "://" + externalAddressAndPort + pathSuffix;
             }
 
             ServerProperties properties = new ServerPropertiesImpl(serverConf.getPath(),
@@ -130,7 +135,7 @@ public abstract class ServerEvaluationStrategy {
                                                                    internalUrl);
 
             servers.put(portProtocol, new ServerImpl(serverConf.getRef(),
-                                                     serverConf.getProtocol(),
+                                                     protocol,
                                                      externalAddressAndPort,
                                                      externalUrl,
                                                      properties));
