@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * containers are running on the same Docker network and are exposed through the same single port.
  *
  * This server evaluation strategy will return a completed {@link ServerImpl} with internal addresses set
- * as {@link LocalDockerServerEvaluationStrategy} does. Contrarily external addresses will have the following format:
+ * as {@link LocalDockerServerEvaluationStrategy} does. Contrary external addresses will have the following format:
  *
  *       serverName.workspaceID.cheExternalAddress (e.g. terminal.79rfwhqaztq2ru2k.che.local)
  *
@@ -45,10 +45,14 @@ public class LocalDockerSinglePortServerEvaluationStrategy extends LocalDockerSe
 
     private static final String CHE_WORKSPACE_ID_ENV_VAR = "CHE_WORKSPACE_ID";
 
+    private String externalPort;
+
     @Inject
     public LocalDockerSinglePortServerEvaluationStrategy(@Nullable @Named("che.docker.ip") String internalAddress,
-                                                         @Nullable @Named("che.docker.ip.external") String externalAddress) {
+                                                         @Nullable @Named("che.docker.ip.external") String externalAddress,
+                                                         @Nullable @Named("che.external.port") String externalPort) {
         super(internalAddress, externalAddress);
+        this.externalPort = externalPort;
     }
 
     @Override
@@ -62,7 +66,7 @@ public class LocalDockerSinglePortServerEvaluationStrategy extends LocalDockerSe
         Map<String, String> addressesAndPorts = new HashMap<>();
         for (String serverKey : portBindings.keySet()) {
             String serverName = getWorkspaceServerName(labels, serverKey);
-            String serverURL = serverName + "." + workspaceID + "." + cheExternalAddress;
+            String serverURL = serverName + "." + workspaceID + "." + cheExternalAddress + ":" + externalPort;
             addressesAndPorts.put(serverKey, serverURL);
         }
 
