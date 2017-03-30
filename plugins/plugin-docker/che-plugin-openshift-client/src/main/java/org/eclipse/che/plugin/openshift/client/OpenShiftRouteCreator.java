@@ -22,33 +22,13 @@ public class OpenShiftRouteCreator {
     private static final Logger LOG = LoggerFactory.getLogger(OpenShiftRouteCreator.class);
     private static final String TLS_TERMINATION_EDGE = "edge";
 
-    public static void createInsecureRoute(final OpenShiftClient openShiftClient, 
-                                    final String namespace, 
-                                    final String cheServerExternalAddress, 
-                                    final String workspaceName, 
+    public static void createRoute (final OpenShiftClient openShiftClient,
+                                    final String namespace,
+                                    final String workspaceName,
+                                    final String cheServerExternalAddress,
                                     final String serverRef, 
-                                    final String serviceName) {
-
-        createRoute(openShiftClient, namespace, workspaceName, cheServerExternalAddress, serverRef, serviceName, false);
-    }
-
-    public static void createSecureRoute(final OpenShiftClient openShiftClient, 
-                                  final String namespace, 
-                                  final String workspaceName, 
-                                  final String cheServerExternalAddress, 
-                                  final String serverRef, 
-                                  final String serviceName) {
-
-        createRoute(openShiftClient, namespace, workspaceName, cheServerExternalAddress, serverRef, serviceName, true);
-    }
-
-    private static void createRoute (final OpenShiftClient openShiftClient,
-                              final String namespace,
-                              final String workspaceName,
-                              final String cheServerExternalAddress,
-                              final String serverRef, 
-                              final String serviceName,
-                              final boolean enableTls) {
+                                    final String serviceName,
+                                    final boolean enableTls) {
         
         String routeName = generateRouteName(workspaceName, serverRef);
         String serviceHost = generateRouteHost(workspaceName, serverRef, cheServerExternalAddress);

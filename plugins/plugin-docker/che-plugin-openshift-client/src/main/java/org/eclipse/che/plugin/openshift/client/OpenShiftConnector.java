@@ -171,6 +171,7 @@ public class OpenShiftConnector extends DockerConnector {
     private final String          cheWorkspaceStorage;
     private final String          cheWorkspaceProjectsStorage;
     private final String          cheServerExternalAddress;
+    private final boolean         secureRoutes;
 
     @Inject
     public OpenShiftConnector(DockerConnectorConfiguration connectorConfiguration,
@@ -184,7 +185,8 @@ public class OpenShiftConnector extends DockerConnector {
                               @Named("che.openshift.workspaces.pvc.name") String workspacesPersistentVolumeClaim,
                               @Named("che.openshift.workspaces.pvc.quantity") String workspacesPvcQuantity,
                               @Named("che.workspace.storage") String cheWorkspaceStorage,
-                              @Named("che.workspace.projects.storage") String cheWorkspaceProjectsStorage) {
+                              @Named("che.workspace.projects.storage") String cheWorkspaceProjectsStorage,
+                              @Named("che.openshift.secure.routes") boolean secureRoutes) {
 
         super(connectorConfiguration, connectionFactory, authResolver, dockerApiVersionPathPrefixProvider);
         this.cheServerExternalAddress = cheServerExternalAddress;
@@ -195,6 +197,7 @@ public class OpenShiftConnector extends DockerConnector {
         this.workspacesPvcQuantity = workspacesPvcQuantity;
         this.cheWorkspaceStorage = cheWorkspaceStorage;
         this.cheWorkspaceProjectsStorage = cheWorkspaceProjectsStorage;
+        this.secureRoutes = secureRoutes;
 
         this.openShiftClient = new DefaultOpenShiftClient();
     }
@@ -958,35 +961,37 @@ public class OpenShiftConnector extends DockerConnector {
                                       String serverRef,
                                       String workspaceName) {
 
-        String routeName = CHE_OPENSHIFT_RESOURCES_PREFIX + workspaceName + "." + serverRef;
-        String serviceHost = serverRef + "." + workspaceName + "." + this.cheServerExternalAddress;
+        OpenShiftRouteCreator.createRoute(openShiftClient, openShiftCheProjectName, workspaceName, cheServerExternalAddress, serverRef, serviceName, secureRoutes);
 
-        Route route = openShiftClient
-                .routes()
-                .inNamespace(this.openShiftCheProjectName)
-                .createNew()
-                .withNewMetadata()
-                .withName(routeName)
-                .addToLabels(OPENSHIFT_DEPLOYMENT_LABEL,serviceName)
-                .endMetadata()
-                .withNewSpec()
-                .withHost(serviceHost)
-                .withNewTo()
-                    .withKind("Service")
-                    .withName(serviceName)
-                .endTo()
-                .withNewPort()
-                    .withNewTargetPort()
-                        .withStrVal(serverRef)
-                    .endTargetPort()
-                .endPort()
-                .withNewTls()
-                    .withTermination("edge")
-                .endTls()
-                .endSpec()
-                .done();
-
-        LOG.info("OpenShift route {} created", route.getMetadata().getName());
+//        String routeName = CHE_OPENSHIFT_RESOURCES_PREFIX + workspaceName + "." + serverRef;
+//        String serviceHost = serverRef + "." + workspaceName + "." + this.cheServerExternalAddress;
+//
+//        Route route = openShiftClient
+//                .routes()
+//                .inNamespace(this.openShiftCheProjectName)
+//                .createNew()
+//                .withNewMetadata()
+//                .withName(routeName)
+//                .addToLabels(OPENSHIFT_DEPLOYMENT_LABEL,serviceName)
+//                .endMetadata()
+//                .withNewSpec()
+//                .withHost(serviceHost)
+//                .withNewTo()
+//                    .withKind("Service")
+//                    .withName(serviceName)
+//                .endTo()
+//                .withNewPort()
+//                    .withNewTargetPort()
+//                        .withStrVal(serverRef)
+//                    .endTargetPort()
+//                .endPort()
+//                .withNewTls()
+//                    .withTermination("edge")
+//                .endTls()
+//                .endSpec()
+//                .done();
+//
+//        LOG.info("OpenShift route {} created", route.getMetadata().getName());
     }
 
     private String createOpenShiftDeployment(String workspaceID,
