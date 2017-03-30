@@ -142,9 +142,11 @@ import io.fabric8.openshift.client.OpenShiftClient;
 @Singleton
 public class OpenShiftConnector extends DockerConnector {
     private static final Logger LOG                                      = LoggerFactory.getLogger(OpenShiftConnector.class);
+    public static final String CHE_OPENSHIFT_RESOURCES_PREFIX           = "che-ws-";
+    public static final String OPENSHIFT_DEPLOYMENT_LABEL               = "deployment";
+
     private static final String CHE_CONTAINER_IDENTIFIER_LABEL_KEY       = "cheContainerIdentifier";
     private static final String CHE_DEFAULT_EXTERNAL_ADDRESS             = "172.17.0.1";
-    private static final String CHE_OPENSHIFT_RESOURCES_PREFIX           = "che-ws-";
     private static final String CHE_WORKSPACE_ID_ENV_VAR                 = "CHE_WORKSPACE_ID";
     private static final int CHE_WORKSPACE_AGENT_PORT                    = 4401;
     private static final int CHE_TERMINAL_AGENT_PORT                     = 4411;
@@ -154,7 +156,6 @@ public class OpenShiftConnector extends DockerConnector {
     private static final int OPENSHIFT_IMAGESTREAM_WAIT_DELAY            = 2000;
     private static final int OPENSHIFT_IMAGESTREAM_MAX_WAIT_COUNT        = 30;
     private static final String OPENSHIFT_POD_STATUS_RUNNING             = "Running";
-    private static final String OPENSHIFT_DEPLOYMENT_LABEL               = "deployment";
     private static final String OPENSHIFT_VOLUME_STORAGE_CLASS           = "volume.beta.kubernetes.io/storage-class";
     private static final String OPENSHIFT_VOLUME_STORAGE_CLASS_NAME      = "che-workspace";
     private static final String OPENSHIFT_IMAGE_PULL_POLICY_IFNOTPRESENT = "IfNotPresent";
