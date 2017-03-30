@@ -45,14 +45,19 @@ public class LocalDockerSinglePortServerEvaluationStrategy extends LocalDockerSe
 
     private static final String CHE_WORKSPACE_ID_ENV_VAR = "CHE_WORKSPACE_ID";
 
-    private String externalPort;
+    private boolean secureExternalUrl;
 
     @Inject
     public LocalDockerSinglePortServerEvaluationStrategy(@Nullable @Named("che.docker.ip") String internalAddress,
                                                          @Nullable @Named("che.docker.ip.external") String externalAddress,
-                                                         @Nullable @Named("che.external.port") String externalPort) {
+                                                         @Named("che.docker.server_evaluation_strategy.secure.external.urls") boolean secureExternalUrl) {
         super(internalAddress, externalAddress);
-        this.externalPort = externalPort;
+        this.secureExternalUrl = secureExternalUrl;
+    }
+
+    @Override
+    protected boolean useHttpsForExternalUrl() {
+        return this.secureExternalUrl;
     }
 
     @Override
