@@ -50,7 +50,7 @@ public class LocalDockerSinglePortServerEvaluationStrategy extends LocalDockerSe
     @Inject
     public LocalDockerSinglePortServerEvaluationStrategy(@Nullable @Named("che.docker.ip") String internalAddress,
                                                          @Nullable @Named("che.docker.ip.external") String externalAddress,
-                                                         @Named("che.docker.server_evaluation_strategy.secure.external.urls") boolean secureExternalUrl) {
+                                                         @Nullable @Named("che.docker.server_evaluation_strategy.secure.external.urls") Boolean secureExternalUrl) {
         super(internalAddress, externalAddress);
         this.secureExternalUrl = secureExternalUrl;
     }
