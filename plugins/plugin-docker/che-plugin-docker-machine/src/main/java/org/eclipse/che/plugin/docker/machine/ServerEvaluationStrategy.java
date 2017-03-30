@@ -125,7 +125,7 @@ public abstract class ServerEvaluationStrategy {
 
                 internalUrl = protocol + "://" + internalAddressAndPort + pathSuffix;
 
-                protocol = (protocol.equals("http")) ? "https" : protocol;
+                protocol = "https";
 
                 externalUrl = protocol + "://" + externalAddressAndPort + pathSuffix;
             }
@@ -135,7 +135,7 @@ public abstract class ServerEvaluationStrategy {
                                                                    internalUrl);
 
             servers.put(portProtocol, new ServerImpl(serverConf.getRef(),
-                                                     protocol,
+                                                     "https",
                                                      externalAddressAndPort,
                                                      externalUrl,
                                                      properties));
