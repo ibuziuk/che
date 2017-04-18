@@ -73,7 +73,7 @@ public class OpenShiftRouteCreator {
     }
 
     private static String generateRouteName(final String workspaceName, final String serverRef) {
-        return OpenShiftConnector.CHE_OPENSHIFT_RESOURCES_PREFIX + workspaceName + "-" + serverRef;
+        return serverRef + "-" + workspaceName;
     }
 
     private static String generateRouteHost(final String workspaceName, final String serverRef, final String cheServerExternalAddress) {
