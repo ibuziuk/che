@@ -10,11 +10,13 @@
  */
 package org.eclipse.che.workspace.infrastructure.openshift;
 
+import org.eclipse.che.api.workspace.server.spi.RuntimeInfrastructure;
+import org.eclipse.che.workspace.infrastructure.openshift.bootstrapper.OpenShiftBootstrapperFactory;
+import org.eclipse.che.workspace.infrastructure.openshift.environment.OpenShiftEnvironmentTypeModule;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
-import org.eclipse.che.api.workspace.server.spi.RuntimeInfrastructure;
-import org.eclipse.che.workspace.infrastructure.openshift.bootstrapper.OpenShiftBootstrapperFactory;
 
 /** @author Sergii Leshchenko */
 public class OpenShiftInfraModule extends AbstractModule {
@@ -27,6 +29,7 @@ public class OpenShiftInfraModule extends AbstractModule {
 
     //      TODO Revise bind(WorkspaceFilesCleaner.class).toInstance(workspace -> {});
 
+    install(new OpenShiftEnvironmentTypeModule());
     install(new FactoryModuleBuilder().build(OpenShiftRuntimeContextFactory.class));
     install(new FactoryModuleBuilder().build(OpenShiftRuntimeFactory.class));
     install(new FactoryModuleBuilder().build(OpenShiftBootstrapperFactory.class));

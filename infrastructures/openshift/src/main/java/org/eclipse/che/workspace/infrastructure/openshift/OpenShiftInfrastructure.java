@@ -10,9 +10,11 @@
  */
 package org.eclipse.che.workspace.infrastructure.openshift;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
 import org.eclipse.che.api.core.ValidationException;
 import org.eclipse.che.api.core.model.workspace.runtime.RuntimeIdentity;
 import org.eclipse.che.api.core.notification.EventService;
@@ -21,6 +23,8 @@ import org.eclipse.che.api.workspace.server.RecipeRetriever;
 import org.eclipse.che.api.workspace.server.spi.InfrastructureException;
 import org.eclipse.che.api.workspace.server.spi.InternalEnvironment;
 import org.eclipse.che.api.workspace.server.spi.RuntimeInfrastructure;
+import org.eclipse.che.workspace.infrastructure.openshift.environment.EnvironmentParser;
+import org.eclipse.che.workspace.infrastructure.openshift.environment.OpenShiftConfigSourceSpecificEnvironmentParser;
 import org.eclipse.che.workspace.infrastructure.openshift.environment.OpenShiftEnvironment;
 import org.eclipse.che.workspace.infrastructure.openshift.environment.OpenShiftEnvironmentParser;
 
@@ -28,20 +32,21 @@ import org.eclipse.che.workspace.infrastructure.openshift.environment.OpenShiftE
 @Singleton
 public class OpenShiftInfrastructure extends RuntimeInfrastructure {
   private final OpenShiftRuntimeContextFactory runtimeContextFactory;
-  private final OpenShiftEnvironmentParser envParser;
+  private final EnvironmentParser envParser;
   private final OpenShiftInfrastructureProvisioner infrastructureProvisioner;
 
   @Inject
   public OpenShiftInfrastructure(
       OpenShiftRuntimeContextFactory runtimeContextFactory,
-      OpenShiftEnvironmentParser envParser,
+      EnvironmentParser envParser,
+      Map<String, OpenShiftConfigSourceSpecificEnvironmentParser> environmentParsers,
       OpenShiftInfrastructureProvisioner infrastructureProvisioner,
       EventService eventService,
       InstallerRegistry installerRegistry,
       RecipeRetriever recipeRetriever) {
     super(
         "openshift",
-        ImmutableSet.of("openshift"),
+        environmentParsers.keySet(),
         eventService,
         installerRegistry,
         recipeRetriever);

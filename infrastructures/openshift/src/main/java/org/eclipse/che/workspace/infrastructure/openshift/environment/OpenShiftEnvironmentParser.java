@@ -46,7 +46,8 @@ import org.eclipse.che.workspace.infrastructure.openshift.ServerExposer;
  *
  * @author Sergii Leshchenko
  */
-public class OpenShiftEnvironmentParser {
+public class OpenShiftEnvironmentParser implements OpenShiftConfigSourceSpecificEnvironmentParser {
+  public static final String TYPE = "openshift";
   private final OpenShiftClientFactory clientFactory;
 
   @Inject
@@ -54,6 +55,7 @@ public class OpenShiftEnvironmentParser {
     this.clientFactory = clientFactory;
   }
 
+  @Override
   public OpenShiftEnvironment parse(InternalEnvironment environment)
       throws ValidationException, InfrastructureException {
     checkNotNull(environment, "Environment should not be null");
