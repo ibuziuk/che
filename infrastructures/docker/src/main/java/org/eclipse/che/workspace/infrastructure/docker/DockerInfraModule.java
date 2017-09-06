@@ -13,8 +13,6 @@ package org.eclipse.che.workspace.infrastructure.docker;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
-import org.eclipse.che.api.workspace.server.hc.ServerCheckerFactory;
-import org.eclipse.che.api.workspace.server.hc.ServerCheckerFactoryImpl;
 import org.eclipse.che.api.workspace.server.spi.RuntimeInfrastructure;
 import org.eclipse.che.plugin.docker.client.DockerRegistryDynamicAuthResolver;
 import org.eclipse.che.plugin.docker.client.NoOpDockerRegistryDynamicAuthResolverImpl;
@@ -67,8 +65,6 @@ public class DockerInfraModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(DockerRuntimeFactory.class));
     install(new FactoryModuleBuilder().build(DockerBootstrapperFactory.class));
     install(new FactoryModuleBuilder().build(DockerRuntimeContextFactory.class));
-
-    bind(ServerCheckerFactory.class).to(ServerCheckerFactoryImpl.class);
 
     bind(SnapshotDao.class).to(JpaSnapshotDao.class);
   }

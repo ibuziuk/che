@@ -41,6 +41,8 @@ import org.eclipse.che.api.workspace.server.RemoveWorkspaceFilesAfterRemoveWorks
 import org.eclipse.che.api.workspace.server.adapter.StackMessageBodyAdapter;
 import org.eclipse.che.api.workspace.server.adapter.WorkspaceConfigMessageBodyAdapter;
 import org.eclipse.che.api.workspace.server.adapter.WorkspaceMessageBodyAdapter;
+import org.eclipse.che.api.workspace.server.hc.ServerCheckerFactory;
+import org.eclipse.che.api.workspace.server.hc.ServerCheckerFactoryImpl;
 import org.eclipse.che.api.workspace.server.stack.StackLoader;
 import org.eclipse.che.core.db.schema.SchemaInitializer;
 import org.eclipse.che.inject.DynaModule;
@@ -180,5 +182,6 @@ public class WsMasterModule extends AbstractModule {
 //    install(new LocalDockerModule());
     install(new OpenShiftInfraModule());
     bind(RemoveWorkspaceFilesAfterRemoveWorkspaceEventSubscriber.class).asEagerSingleton();
+    bind(ServerCheckerFactory.class).to(ServerCheckerFactoryImpl.class);
   }
 }
