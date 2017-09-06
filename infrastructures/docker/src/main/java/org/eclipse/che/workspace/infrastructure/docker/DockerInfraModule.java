@@ -33,6 +33,8 @@ import org.eclipse.che.workspace.infrastructure.docker.provisioner.priviliged.Pr
 import org.eclipse.che.workspace.infrastructure.docker.provisioner.proxy.ProxySettingsProvisioner;
 import org.eclipse.che.workspace.infrastructure.docker.provisioner.server.ServersEnvVarsProvisioningModule;
 import org.eclipse.che.workspace.infrastructure.docker.provisioner.volume.ExtraVolumesProvisioner;
+import org.eclipse.che.workspace.infrastructure.docker.snapshot.JpaSnapshotDao;
+import org.eclipse.che.workspace.infrastructure.docker.snapshot.SnapshotDao;
 
 /** @author Alexander Garagatyi */
 public class DockerInfraModule extends AbstractModule {
@@ -67,5 +69,7 @@ public class DockerInfraModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(DockerRuntimeContextFactory.class));
 
     bind(ServerCheckerFactory.class).to(ServerCheckerFactoryImpl.class);
+
+    bind(SnapshotDao.class).to(JpaSnapshotDao.class);
   }
 }
