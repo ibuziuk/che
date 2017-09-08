@@ -1,0 +1,81 @@
+{
+  "defaultEnv": "default",
+  "environments": {
+    "default": {
+      "warnings": [
+      ],
+      "machines": {
+        "app/main": {
+          "installers": [
+            "org.eclipse.che.exec",
+            "org.eclipse.che.terminal",
+            "org.eclipse.che.ws-agent"
+          ],
+          "servers": {
+            "web": {
+              "protocol": "http",
+              "port": "8080/tcp"
+            }
+          },
+          "attributes": {
+          }
+        }
+      },
+      "recipe": {
+        "contentType": "application/x-yaml",
+        "type": "openshift",
+        "content": "kind: List\nitems:\n-\n  apiVersion: v1\n  kind: Pod\n  metadata:\n    name: app\n  spec:\n    containers:\n      -\n        image: rhche/vertx:latest\n        name: main\n        ports:\n          -\n            containerPort: 8080\n            protocol: TCP"
+      }
+    }
+  },
+  "commands": [
+    {
+      "commandLine": "scl enable rh-maven33 'mvn clean install -f ${current.project.path}'",
+      "name": "build",
+      "type": "mvn",
+      "attributes": {
+        "previewUrl": "",
+        "goal": "Build"
+      }
+    },
+    {
+      "commandLine": "scl enable rh-maven33 'mvn compile vertx:run -f ${current.project.path}'",
+      "name": "run",
+      "type": "custom",
+      "attributes": {
+        "previewUrl": "http://${server.port.8080}",
+        "goal": "Run"
+      }
+    },
+    {
+      "commandLine": "scl enable rh-maven33 'mvn vertx:debug -f ${current.project.path}'",
+      "name": "debug",
+      "type": "custom",
+      "attributes": {
+        "previewUrl": "http://${server.port.8080}",
+        "goal": "Debug"
+      }
+    }
+  ],
+  "projects": [
+    {
+      "name": "vertx-demo",
+      "attributes": {
+        "contribute_to_branch": [
+          "master"
+        ]
+      },
+      "type": "maven",
+      "source": {
+        "location": "https://github.com/ibuziuk/vertx-2.git",
+        "type": "git"
+      },
+      "path": "/vertx-demo",
+      "mixins": [
+        "pullrequest",
+        "git"
+      ]
+    }
+  ],
+  "name": "default"
+}
