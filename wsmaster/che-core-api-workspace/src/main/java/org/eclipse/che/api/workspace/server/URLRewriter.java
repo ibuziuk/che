@@ -40,6 +40,12 @@ public interface URLRewriter {
     public String rewriteURL(@Nullable RuntimeIdentity identity, @Nullable String name, String url)
         throws InfrastructureException {
 
+      if (url.startsWith("ws:")) {
+        return url.replaceFirst("^ws", "wss");
+      } else if (url.startsWith("http:")) {
+        return url.replaceFirst("^http", "https");
+      }
+
       return url;
     }
   }

@@ -10,6 +10,8 @@
  */
 package org.eclipse.che.api.workspace.server.hc;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.google.common.collect.ImmutableMap;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,6 +28,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.eclipse.che.api.core.model.workspace.runtime.Server;
 import org.eclipse.che.api.workspace.server.spi.InfrastructureException;
 import org.eclipse.che.api.workspace.server.spi.InternalInfrastructureException;
+import org.slf4j.Logger;
 
 /**
  * Checks readiness of servers of a machine.
@@ -33,6 +36,8 @@ import org.eclipse.che.api.workspace.server.spi.InternalInfrastructureException;
  * @author Alexander Garagatyi
  */
 public class ServersReadinessChecker {
+  private static final Logger LOG = getLogger(ServersReadinessChecker.class);
+
   // workaround to set correct paths for servers readiness checks
   // TODO replace with checks set in server config
   private static final Map<String, String> LIVENESS_CHECKS_PATHS =
@@ -162,6 +167,7 @@ public class ServersReadinessChecker {
     String livenessCheckPath = LIVENESS_CHECKS_PATHS.get(serverRef);
     // Create server readiness endpoint URL
     URL url;
+    LOG.info("Checking server {}, url {}", serverRef, server.getUrl());
     try {
       // TODO: ws -> http is workaround used for terminal websocket server,
       // should be removed after server checks added to model
@@ -170,6 +176,8 @@ public class ServersReadinessChecker {
               .replacePath(livenessCheckPath)
               .build()
               .toURL();
+      LOG.info("Checker ref {}", serverRef);
+      LOG.info("Checker URL {}", url);
     } catch (MalformedURLException e) {
       throw new InternalInfrastructureException(
           "Server " + serverRef + " URL is invalid. Error: " + e.getMessage(), e);

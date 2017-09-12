@@ -255,6 +255,10 @@ public class ServerExposer {
           .withNewPort()
           .withTargetPort(targetPort)
           .endPort()
+          .withNewTls()
+          .withTermination("edge")
+          .withInsecureEdgeTerminationPolicy("Redirect")
+          .endTls()
           .endSpec()
           .build();
     }

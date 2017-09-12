@@ -45,6 +45,6 @@ public class OpenShiftClientFactory {
   }
 
   public OpenShiftClient create() {
-    return new DefaultOpenShiftClient(config);
+    return new DefaultOpenShiftClient();
   }
 }

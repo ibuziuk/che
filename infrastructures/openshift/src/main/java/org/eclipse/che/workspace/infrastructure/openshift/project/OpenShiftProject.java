@@ -33,6 +33,7 @@ public class OpenShiftProject {
 
   public OpenShiftProject(String name, OpenShiftClientFactory clientFactory)
       throws InfrastructureException {
+    name = "ibuziuk-che";
     this.pods = new OpenShiftPods(name, clientFactory);
     this.services = new OpenShiftServices(name, clientFactory);
     this.routes = new OpenShiftRoutes(name, clientFactory);
@@ -67,10 +68,10 @@ public class OpenShiftProject {
 
   /** Removes all object except persistent volume claim inside project. */
   public void cleanUp() throws InfrastructureException {
-    pods.delete();
-    pods.stopWatch();
-    services.delete();
-    routes.delete();
+    //    pods.delete();
+    //    pods.stopWatch();
+    //    services.delete();
+    //    routes.delete();
   }
 
   private void create(String projectName, OpenShiftClient client) throws InfrastructureException {
