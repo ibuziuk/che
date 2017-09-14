@@ -13,6 +13,8 @@ package org.eclipse.che.api.workspace.server;
 import org.eclipse.che.api.core.model.workspace.runtime.RuntimeIdentity;
 import org.eclipse.che.api.workspace.server.spi.InfrastructureException;
 import org.eclipse.che.commons.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * System specific strategy for rewriting URLs to use in rewriting Servers, Hyperlinks, etc For
@@ -21,6 +23,7 @@ import org.eclipse.che.commons.annotation.Nullable;
  * @author gazarenkov
  */
 public interface URLRewriter {
+  Logger LOG = LoggerFactory.getLogger(URLRewriter.class);
   /**
    * Rewrites URL according to URL rewriting strategy rules. May depend on
    * RuntimeIdentityImpl(workspace, owner,..) and name (some id) of this particular URL
@@ -41,9 +44,15 @@ public interface URLRewriter {
         throws InfrastructureException {
 
       if (url.startsWith("ws:")) {
-        return url.replaceFirst("^ws", "wss");
+        LOG.info("URL before modification {}", url);
+        // url = url.replaceFirst("^ws", "wss");
+        LOG.info("URL after modification {}", url);
+        return url;
       } else if (url.startsWith("http:")) {
-        return url.replaceFirst("^http", "https");
+        LOG.info("URL before modification {}", url);
+        // url = url.replaceFirst("^http", "https");
+        LOG.info("URL after modification {}", url);
+        return url;
       }
 
       return url;
