@@ -171,11 +171,15 @@ public class ServersReadinessChecker {
     try {
       // TODO: ws -> http is workaround used for terminal websocket server,
       // should be removed after server checks added to model
-      url =
-          UriBuilder.fromUri(server.getUrl().replaceFirst("^ws", "http"))
-              .replacePath(livenessCheckPath)
-              .build()
-              .toURL();
+      String checkerUrl = server.getUrl();
+      if (checkerUrl.startsWith("http:")) {
+        checkerUrl.replaceFirst("^http", "https");
+      } else if (checkerUrl.startsWith("ws:")) {
+        checkerUrl.replaceFirst("^ws", "https");
+      } else if (checkerUrl.startsWith("wss:")) {
+        checkerUrl.replaceFirst("^wss", "https");
+      }
+      url = UriBuilder.fromUri(checkerUrl).replacePath(livenessCheckPath).build().toURL();
       LOG.info("Checker ref {}", serverRef);
       LOG.info("Checker URL {}", url);
     } catch (MalformedURLException e) {

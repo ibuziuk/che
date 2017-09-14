@@ -45,12 +45,12 @@ public interface URLRewriter {
 
       if (url.startsWith("ws:")) {
         LOG.info("URL before modification {}", url);
-        // url = url.replaceFirst("^ws", "wss");
+        url = url.replaceFirst("^ws", "wss");
         LOG.info("URL after modification {}", url);
         return url;
       } else if (url.startsWith("http:")) {
         LOG.info("URL before modification {}", url);
-        // url = url.replaceFirst("^http", "https");
+        url = url.replaceFirst("^http", "https");
         LOG.info("URL after modification {}", url);
         return url;
       }
