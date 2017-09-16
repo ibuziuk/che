@@ -149,6 +149,7 @@ public class OpenShiftEnvironmentParser {
       rewriteRestartPolicy(podSpec, podName, environment);
       for (Container containerConfig : podSpec.getContainers()) {
         String machineName = podName + '/' + containerConfig.getName();
+
         InternalMachineConfig machineConfig = environment.getMachines().get(machineName);
         if (machineConfig != null && !machineConfig.getServers().isEmpty()) {
           ServerExposer serverExposer =
