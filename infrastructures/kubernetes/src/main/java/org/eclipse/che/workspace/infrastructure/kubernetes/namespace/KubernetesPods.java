@@ -28,8 +28,10 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +52,7 @@ import org.eclipse.che.workspace.infrastructure.kubernetes.KubernetesInfrastruct
 import org.eclipse.che.workspace.infrastructure.kubernetes.namespace.event.ContainerEvent;
 import org.eclipse.che.workspace.infrastructure.kubernetes.namespace.event.ContainerEventHandler;
 import org.eclipse.che.workspace.infrastructure.kubernetes.namespace.event.PodActionHandler;
+import org.eclipse.che.workspace.infrastructure.kubernetes.util.ContainerEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +89,7 @@ public class KubernetesPods {
   private final String workspaceId;
   private Watch podWatch;
   private Watch containerWatch;
+  private Date watcherInitializationDate;
 
   KubernetesPods(String namespace, String workspaceId, KubernetesClientFactory clientFactory) {
     this.namespace = namespace;
@@ -330,7 +334,16 @@ public class KubernetesPods {
                           event.getMetadata().getCreationTimestamp(),
                           event.getLastTimestamp());
 
-                  containerEventsHandlers.forEach(h -> h.handle(containerEvent));
+                  try {
+                    if (happenedAfterWatcherInitialization(containerEvent)) {
+                      containerEventsHandlers.forEach(h -> h.handle(containerEvent));
+                    }
+                  } catch (ParseException e) {
+                    LOG.error(
+                        "Failed to parse timestamp of the event {}, {}",
+                        podName,
+                        event.getLastTimestamp());
+                  }
                 }
               }
             }
@@ -341,6 +354,7 @@ public class KubernetesPods {
       try {
         containerWatch =
             clientFactory.create(workspaceId).events().inNamespace(namespace).watch(watcher);
+        watcherInitializationDate = new Date();
       } catch (KubernetesClientException ex) {
         throw new KubernetesInfrastructureException(ex);
       }
@@ -548,6 +562,16 @@ public class KubernetesPods {
     } catch (KubernetesClientException ex) {
       throw new KubernetesInfrastructureException(ex);
     }
+  }
+
+  /**
+   * Returns true if 'lastTimestamp' of the event is *after* the time of the watcher initialization
+   */
+  private boolean happenedAfterWatcherInitialization(ContainerEvent event) throws ParseException {
+    String eventLastTimestamp = event.getLastTimestamp();
+    Date eventLastTimestampDate = ContainerEvents.convertEventTimestampToDate(eventLastTimestamp);
+    return eventLastTimestampDate != null
+        && eventLastTimestampDate.after(watcherInitializationDate);
   }
 
   private String[] encode(String[] toEncode) throws InfrastructureException {
