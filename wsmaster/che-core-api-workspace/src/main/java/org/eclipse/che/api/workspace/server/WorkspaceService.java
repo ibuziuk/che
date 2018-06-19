@@ -230,6 +230,7 @@ public class WorkspaceService extends Service {
           Integer maxItems,
       @ApiParam("Workspace status") @QueryParam("status") String status)
       throws ServerException, BadRequestException {
+
     return withLinks(
         workspaceManager
             .getWorkspaces(
