@@ -141,7 +141,6 @@ public class KubernetesInfraModule extends AbstractModule {
         .addBinding("default")
         .to(new TypeLiteral<DefaultSecureServersFactory<KubernetesEnvironment>>() {});
 
-
     bind(InternalEnvironmentConverter.class).to(DockerimageToK8sInternalEnvConverter.class);
   }
 }
